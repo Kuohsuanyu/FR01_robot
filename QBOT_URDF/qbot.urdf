@@ -1,0 +1,1200 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="converted_robot">
+  <mujoco><compiler discardvisual="false" strippath="false" balanceinertia="true"/></mujoco>
+   
+   <link name="world">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.0" />
+         <inertia ixx="0.0" iyy="0.0" izz="0.0" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <link name="base">
+      <inertial>
+         <origin xyz="0.0 0.0 1.01948" rpy="0.0 0.0 0.0" />
+         <mass value="0.0" />
+         <inertia ixx="0.0" iyy="0.0" izz="0.0" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <link name="floating_base_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="fixed" name="floating_base">
+      <parent link="world" />
+      <child link="floating_base_jointbody" />
+      <origin xyz="0.0 0.0 1.01948" rpy="0.0 0.0 0.0" />
+   </joint>
+   <joint type="fixed" name="floating_base_offset">
+      <parent link="floating_base_jointbody" />
+      <child link="base" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="Torso_Side_Right">
+      <inertial>
+         <origin xyz="0.093177 -0.00092 -0.063462" rpy="0.0 0.0 0.0" />
+         <mass value="13.505" />
+         <inertia ixx="0.485847" iyy="0.512347" izz="0.0592" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="fixed" name="base2Torso_Side_Right_fixed">
+      <parent link="base" />
+      <child link="Torso_Side_Right" />
+      <origin xyz="0.0 -0.095 0.0" rpy="0.0 0.0 1.5708005694372709" />
+   </joint>
+   <link name="KC_D_102R_R_Hip_Yoke_Drive">
+      <inertial>
+         <origin xyz="-0.005644 -0.004227 -0.038197" rpy="0.0 0.0 0.0" />
+         <mass value="0.530428" />
+         <inertia ixx="0.00088" iyy="0.001182" izz="0.001271" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KC_D_102R_R_Hip_Yoke_Drive.stl">
+         <origin xyz="-0.0015330208237984396 -0.009878325557588783 -0.04662747546031912" rpy="-1.2154174052555717 -0.9036077886593865 -1.598380336996291" />
+         <geometry>
+            <mesh filename="meshes/converted_KC_D_102R_R_Hip_Yoke_Drive.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_right_hip_pitch_04_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_right_hip_pitch_04">
+      <parent link="Torso_Side_Right" />
+      <child link="dof_right_hip_pitch_04_jointbody" />
+      <origin xyz="0.037469 7e-06 -0.284479" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+      <axis xyz="0.0 0.0 1.0" />
+      <limit lower="-2.21657" upper="1.0472" effort="120" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_right_hip_pitch_04_offset">
+      <parent link="dof_right_hip_pitch_04_jointbody" />
+      <child link="KC_D_102R_R_Hip_Yoke_Drive" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="RS03_4">
+      <inertial>
+         <origin xyz="-0.000249 0.058017 0.02558" rpy="0.0 0.0 0.0" />
+         <mass value="2.37318" />
+         <inertia ixx="0.010217" iyy="0.003255" izz="0.010667" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="RS03_4.stl">
+         <origin xyz="-0.0010715392408947955 0.05700615408918506 0.028220977603899876" rpy="0.11586637030495905 -1.5048005426005626 1.4534279017312088" />
+         <geometry>
+            <mesh filename="meshes/converted_RS03_4.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_right_hip_roll_03_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_right_hip_roll_03">
+      <parent link="KC_D_102R_R_Hip_Yoke_Drive" />
+      <child link="dof_right_hip_roll_03_jointbody" />
+      <origin xyz="-0.02825 -0.03 -0.071" rpy="-3.1415923071797023 -1.5707963267934824 0.0" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-2.26893" upper="0.20944" effort="60" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_right_hip_roll_03_offset">
+      <parent link="dof_right_hip_roll_03_jointbody" />
+      <child link="RS03_4" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KC_D_301R_R_Femur_Lower_Drive">
+      <inertial>
+         <origin xyz="-0.001014 -0.013387 0.171456" rpy="0.0 0.0 0.0" />
+         <mass value="2.34363" />
+         <inertia ixx="0.015645" iyy="0.014172" izz="0.004016" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KC_D_301R_R_Femur_Lower_Drive.stl">
+         <origin xyz="-0.0009198746043852535 -0.0010846600320524005 0.11508299067337595" rpy="0.1208622139581676 -0.05681570758261656 -0.0488329820278981" />
+         <geometry>
+            <mesh filename="meshes/converted_KC_D_301R_R_Femur_Lower_Drive.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_right_hip_yaw_03_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_right_hip_yaw_03">
+      <parent link="RS03_4" />
+      <child link="dof_right_hip_yaw_03_jointbody" />
+      <origin xyz="0.0 0.143 0.02425" rpy="-1.5707963267948957 0.0 0.0" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="60" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_right_hip_yaw_03_offset">
+      <parent link="dof_right_hip_yaw_03_jointbody" />
+      <child link="KC_D_301R_R_Femur_Lower_Drive" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KC_D_401R_R_Shin_Drive">
+      <inertial>
+         <origin xyz="-0.024549 0.104152 0.018182" rpy="0.0 0.0 0.0" />
+         <mass value="1.67059" />
+         <inertia ixx="0.014672" iyy="0.002924" izz="0.014592" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KC_D_401R_R_Shin_Drive.stl">
+         <origin xyz="-0.026659454989924135 0.08817499074998107 0.01999254975794836" rpy="1.5811664130362362 0.1610133007333019 0.012746231466935098" />
+         <geometry>
+            <mesh filename="meshes/converted_KC_D_401R_R_Shin_Drive.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_right_knee_04_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_right_knee_04">
+      <parent link="KC_D_301R_R_Femur_Lower_Drive" />
+      <child link="dof_right_knee_04_jointbody" />
+      <origin xyz="0.0205 -0.021 0.212" rpy="1.5707963267948966 0.0 -1.5707963267948966" />
+      <axis xyz="0.0 0.0 1.0" />
+      <limit lower="-2.70526" upper="0.0" effort="120" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_right_knee_04_offset">
+      <parent link="dof_right_knee_04_jointbody" />
+      <child link="KC_D_401R_R_Shin_Drive" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KB_D_501R_R_LEG_FOOT">
+      <inertial>
+         <origin xyz="-0.01747 0.032456 -0.015742" rpy="0.0 0.0 0.0" />
+         <mass value="0.620712" />
+         <inertia ixx="0.00037" iyy="0.002011" izz="0.001945" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KB_D_501R_R_LEG_FOOT.stl">
+         <origin xyz="-0.020910134408444143 0.03462890312266505 -0.015113550241877603" rpy="1.5703470419118728 0.13360408792681255 1.5329074007812904" />
+         <geometry>
+            <mesh filename="meshes/converted_KB_D_501R_R_LEG_FOOT.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_right_ankle_02_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_right_ankle_02">
+      <parent link="KC_D_401R_R_Shin_Drive" />
+      <child link="dof_right_ankle_02_jointbody" />
+      <origin xyz="-0.03 0.29 0.0351" rpy="0.0 0.0 0.0" />
+      <axis xyz="0.0 0.0 1.0" />
+      <limit lower="-0.226893" upper="1.25664" effort="17" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_right_ankle_02_offset">
+      <parent link="dof_right_ankle_02_jointbody" />
+      <child link="KB_D_501R_R_LEG_FOOT" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KC_D_102L_L_Hip_Yoke_Drive">
+      <inertial>
+         <origin xyz="-0.005644 0.004227 -0.038197" rpy="0.0 0.0 0.0" />
+         <mass value="0.530424" />
+         <inertia ixx="0.00088" iyy="0.001182" izz="0.001271" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KC_D_102L_L_Hip_Yoke_Drive.stl">
+         <origin xyz="-0.0015554924765467718 0.009940355366758701 -0.04664304213825456" rpy="1.2263535584957708 -0.9015172955809339 1.599370187885343" />
+         <geometry>
+            <mesh filename="meshes/converted_KC_D_102L_L_Hip_Yoke_Drive.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_left_hip_pitch_04_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_left_hip_pitch_04">
+      <parent link="Torso_Side_Right" />
+      <child link="dof_left_hip_pitch_04_jointbody" />
+      <origin xyz="0.147969 7e-06 -0.284479" rpy="-1.5707963267948966 0.0 1.5707963267948966" />
+      <axis xyz="0.0 0.0 1.0" />
+      <limit lower="-1.0472" upper="2.21657" effort="120" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_left_hip_pitch_04_offset">
+      <parent link="dof_left_hip_pitch_04_jointbody" />
+      <child link="KC_D_102L_L_Hip_Yoke_Drive" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="RS03_5">
+      <inertial>
+         <origin xyz="0.000249 0.058017 0.025578" rpy="0.0 0.0 0.0" />
+         <mass value="2.37324" />
+         <inertia ixx="0.010217" iyy="0.003255" izz="0.010667" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="RS03_5.stl">
+         <origin xyz="0.001068317494428391 0.05702475667180852 0.028229074940811956" rpy="-0.09735706293658042 -1.5052108569798797 1.6697803224100656" />
+         <geometry>
+            <mesh filename="meshes/converted_RS03_5.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_left_hip_roll_03_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_left_hip_roll_03">
+      <parent link="KC_D_102L_L_Hip_Yoke_Drive" />
+      <child link="dof_left_hip_roll_03_jointbody" />
+      <origin xyz="-0.02825 0.03 -0.071" rpy="-0.0 1.5707963267948966 0.0" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-0.20944" upper="2.26893" effort="60" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_left_hip_roll_03_offset">
+      <parent link="dof_left_hip_roll_03_jointbody" />
+      <child link="RS03_5" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KC_D_301L_L_Femur_Lower_Drive">
+      <inertial>
+         <origin xyz="0.001013 -0.013386 0.171458" rpy="0.0 0.0 0.0" />
+         <mass value="2.34363" />
+         <inertia ixx="0.015644" iyy="0.014172" izz="0.004016" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KC_D_301L_L_Femur_Lower_Drive.stl">
+         <origin xyz="0.0009232128748664012 -0.001093739529818488 0.11506784677303745" rpy="0.12108634583234498 0.05650859497599159 0.0496982067935054" />
+         <geometry>
+            <mesh filename="meshes/converted_KC_D_301L_L_Femur_Lower_Drive.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_left_hip_yaw_03_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_left_hip_yaw_03">
+      <parent link="RS03_5" />
+      <child link="dof_left_hip_yaw_03_jointbody" />
+      <origin xyz="0.0 0.143 0.02425" rpy="-1.5707963267948957 0.0 0.0" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="60" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_left_hip_yaw_03_offset">
+      <parent link="dof_left_hip_yaw_03_jointbody" />
+      <child link="KC_D_301L_L_Femur_Lower_Drive" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KC_D_401L_L_Shin_Drive">
+      <inertial>
+         <origin xyz="-0.02455 -0.104154 0.018183" rpy="0.0 0.0 0.0" />
+         <mass value="1.67054" />
+         <inertia ixx="0.014672" iyy="0.002924" izz="0.014592" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KC_D_401L_L_Shin_Drive.stl">
+         <origin xyz="-0.026663557548855448 -0.08814607055918675 0.019985848506246812" rpy="1.560337671713092 0.1608733060446259 -0.012747584384677602" />
+         <geometry>
+            <mesh filename="meshes/converted_KC_D_401L_L_Shin_Drive.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_left_knee_04_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_left_knee_04">
+      <parent link="KC_D_301L_L_Femur_Lower_Drive" />
+      <child link="dof_left_knee_04_jointbody" />
+      <origin xyz="-0.0205 -0.021 0.212" rpy="-1.5707963267948966 0.0 -1.5707963267948966" />
+      <axis xyz="0.0 0.0 1.0" />
+      <limit lower="0.0" upper="2.70526" effort="120" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_left_knee_04_offset">
+      <parent link="dof_left_knee_04_jointbody" />
+      <child link="KC_D_401L_L_Shin_Drive" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="KB_D_501L_L_LEG_FOOT">
+      <inertial>
+         <origin xyz="-0.01747 0.032456 0.015742" rpy="0.0 0.0 0.0" />
+         <mass value="0.620712" />
+         <inertia ixx="0.00037" iyy="0.002011" izz="0.001945" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="KB_D_501L_L_LEG_FOOT.stl">
+         <origin xyz="-0.02090419135317377 0.03462883398057847 0.015116226075770393" rpy="1.5712228844866503 -0.13357372417523106 1.5329114361075007" />
+         <geometry>
+            <mesh filename="meshes/converted_KB_D_501L_L_LEG_FOOT.stl_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="dof_left_ankle_02_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="dof_left_ankle_02">
+      <parent link="KC_D_401L_L_Shin_Drive" />
+      <child link="dof_left_ankle_02_jointbody" />
+      <origin xyz="-0.03 -0.29 0.0351" rpy="3.1415923071797933 0.0 0.0" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-1.25664" upper="0.226893" effort="17" velocity="20" />
+   </joint>
+   <joint type="fixed" name="dof_left_ankle_02_offset">
+      <parent link="dof_left_ankle_02_jointbody" />
+      <child link="KB_D_501L_L_LEG_FOOT" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="waist_leg_conn">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="1.0" />
+         <inertia ixx="0.005" iyy="0.005" izz="0.005" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="conn_cover_L">
+         <origin xyz="0.10294965093528712 0.0636343138434459 0.030105426941806" rpy="1.5705651658899598 0.007933162899121049 0.00012915976962868392" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_cover_L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_cover_R">
+         <origin xyz="0.024310408923110153 0.06363433799908431 0.03010544698781005" rpy="1.5705647392229012 -0.007934233864226758 -0.00012909142428174647" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_cover_R_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_hip_pitch_L">
+         <origin xyz="0.09561244707884546 0.06335146655301736 0.07052358512895184" rpy="1.540328021875522 0.0055902232424343 0.007259477854271501" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_hip_pitch_L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_hip_pitch_R">
+         <origin xyz="0.031647544676800664 0.06335151595426426 0.07052436474968214" rpy="1.5363458394262117 -0.005597966448144698 -0.00725969900497625" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_hip_pitch_R_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_hip_static_L">
+         <origin xyz="0.0874618244002729 0.06364156089798698 0.08615920661292661" rpy="1.5789870354754125 0.24240652063321178 0.0030658290112818287" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_hip_static_L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_hip_static_R">
+         <origin xyz="0.03974189526578689 0.06369694619361754 0.08640394416851617" rpy="1.5681552313273168 -0.24256615614214683 -0.00298682606402656" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_hip_static_R_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_10">
+         <origin xyz="0.04209965932578727 0.12351874618865087 0.0443094894342206" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_10_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_11">
+         <origin xyz="0.0851300206100219 0.0037412581441964485 0.04430951495757191" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_11_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_12">
+         <origin xyz="0.08513001893076334 0.12351874977387545 0.04430948921466026" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_12_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_13">
+         <origin xyz="0.03409965900466985 0.036458415146493346 0.010592332030960931" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_13_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_2">
+         <origin xyz="0.034099660539660376 0.003741256843595274 0.04430951592418385" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_2_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_3">
+         <origin xyz="0.09313002062188082 0.003741258371016255 0.04430951477330467" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_3_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_4">
+         <origin xyz="0.04209965897002964 0.036458415160199875 0.010592331726640005" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_4_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_5">
+         <origin xyz="0.09313001889752671 0.036458415504149896 0.010592330642751759" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_5_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_6">
+         <origin xyz="0.042099660373312926 0.003741257118283902 0.044309515646614665" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_6_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_7">
+         <origin xyz="0.09313001898660013 0.12351874968226839 0.04430948898620637" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_7_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_8">
+         <origin xyz="0.03409965889153915 0.12351873972984198 0.04430949015998232" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_8_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M3_9">
+         <origin xyz="0.08513001891179786 0.03645841543936393 0.010592331031533826" rpy="0.0 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M3_9_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M4_14">
+         <origin xyz="0.12176907323638628 0.04725214202343613 0.020075055994181985" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M4_14_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M4_15">
+         <origin xyz="0.005490982662071506 0.047252140897250265 0.020075103549408686" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M4_15_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M4_16">
+         <origin xyz="0.005490983279706649 0.11663004095601094 0.0704810996206708" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M4_16_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M4_17">
+         <origin xyz="0.12176907257956 0.11663004223348823 0.07048105202443544" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M4_17_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M4_18">
+         <origin xyz="0.12176907370041219 0.10650794227785794 0.10163367032930778" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M4_18_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M4_19">
+         <origin xyz="0.005490983431398542 0.10650794160499089 0.10163371772328131" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M4_19_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M5_0">
+         <origin xyz="0.06981931800438178 0.11516912486049764 0.033035790418331025" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M5_0_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M5_1">
+         <origin xyz="0.06981931845069453 0.012806835789656417 0.03231994702166103" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M5_1_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_screw_M5_20">
+         <origin xyz="0.06981931862115742 0.025468893846082027 0.019657889146263947" rpy="1.5707963267948966 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_screw_M5_20_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_waist_29">
+         <origin xyz="0.06366612890845347 0.06362986562314289 0.1460513687480835" rpy="0.0 -1.5707932435145469 3.141592653589793" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_waist_29_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_waist_30">
+         <origin xyz="0.06363000043284733 0.0636302873571227 0.16940698344095104" rpy="3.141592653589793 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_waist_30_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_yoke_hardstop_L">
+         <origin xyz="0.12236463156845648 0.08962085320306815 0.05109925126132478" rpy="-0.608178765906344 0.0006626980043673569 0.0034825661941383923" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_yoke_hardstop_L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+      <visual name="conn_yoke_hardstop_R">
+         <origin xyz="0.00489541708101504 0.08962108247088657 0.05109941696274273" rpy="-0.6081776749432388 -0.0006624786235622793 -0.0034823311778084953" />
+         <geometry>
+            <mesh filename="meshes/converted_conn_yoke_hardstop_R_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="base2waist_leg_conn_fixed">
+      <parent link="base" />
+      <child link="waist_leg_conn" />
+      <origin xyz="0.066 -0.066 -0.349" rpy="0.0 0.0 1.5707963267948963" />
+   </joint>
+   <link name="ub_root">
+      <inertial>
+         <origin xyz="0.002 0.059 0.436" rpy="0.0 0.0 1.5707963267948963" />
+         <mass value="0.0" />
+         <inertia ixx="0.0" iyy="0.0" izz="0.0" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="fixed" name="base2ub_root_fixed">
+      <parent link="base" />
+      <child link="ub_root" />
+      <origin xyz="0.002 0.059 0.436" rpy="0.0 0.0 1.5707963267948963" />
+   </joint>
+   <link name="ub_link_5">
+      <inertial>
+         <origin xyz="-7.28854e-11 1.87168e-11 -0.60647" rpy="3.141592653589793 -1.5707963267948963 0.0" />
+         <mass value="0.000286928" />
+         <inertia ixx="6.66113e-07" iyy="3.83084e-07" izz="3.39398e-07" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____">
+         <origin xyz="3.1290796611889795e-05 -3.973767686988646e-08 -0.6054855979563046" rpy="-3.1415589111539726 -1.570723762292116 -8.235634396669411e-13" />
+         <geometry>
+            <mesh filename="meshes/converted_ub_____0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_root2ub_link_5_fixed">
+      <parent link="ub_root" />
+      <child link="ub_link_5" />
+      <origin xyz="-0.061 -8.5485e-11 0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link_3">
+      <inertial>
+         <origin xyz="3.80503e-06 -0.00520018 0.197447" rpy="5.477236089379556e-05 0.008788488109046533 1.5707993959338165" />
+         <mass value="0.00348763" />
+         <inertia ixx="0.000103907" iyy="9.02224e-05" izz="4.50958e-05" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____5">
+         <origin xyz="-0.0005969243382158398 -0.0055127401595335005 0.20021886641614545" rpy="-0.012452768093052069 0.02093733139359255 1.5708871375489704" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____5_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_link_52ub_link_3_fixed">
+      <parent link="ub_link_5" />
+      <child link="ub_link_3" />
+      <origin xyz="-1.94342e-10 8.5485e-11 -0.6" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link_2">
+      <inertial>
+         <origin xyz="-0.00191471 2.60529e-11 -0.0354406" rpy="0.0973606812281389 0.0 1.5707963267948966" />
+         <mass value="0.000579402" />
+         <inertia ixx="1.61153e-06" iyy="1.39241e-06" izz="1.25484e-06" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____4">
+         <origin xyz="-0.0018818927850375638 -1.084463775071556e-08 -0.042038432021868556" rpy="0.5368072722318974 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____4_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_right_shoulder_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_right_shoulder">
+      <parent link="ub_link_3" />
+      <child link="ub_right_shoulder_jointbody" />
+      <origin xyz="-0.125 0.0 0.325" rpy="1.5708003267948967 -8.000045070843953e-12 1.5708003267948967" />
+      <axis xyz="0.0 0.0 1.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="3.0" velocity="0.9" />
+   </joint>
+   <joint type="fixed" name="ub_right_shoulder_offset">
+      <parent link="ub_right_shoulder_jointbody" />
+      <child link="ub_link_2" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link">
+      <inertial>
+         <origin xyz="-0.0173599 0.0197574 -2.48906e-12" rpy="1.5707963267948968 0.0 1.5846724371729655" />
+         <mass value="0.00034083" />
+         <inertia ixx="9.77368e-07" iyy="7.52954e-07" izz="3.27725e-07" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____2">
+         <origin xyz="-0.029313079318678464 0.019306350283718864 -1.4603270259705425e-09" rpy="1.5707963267948968 0.0 1.5658986998649371" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____2_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_right_lateral_raise_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_right_lateral_raise">
+      <parent link="ub_link_2" />
+      <child link="ub_right_lateral_raise_jointbody" />
+      <origin xyz="-0.019 0.0 -0.055" rpy="3.1415926535620375 -1.5707923267948967 1.5707963268226521" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="3.0" velocity="0.9" />
+   </joint>
+   <joint type="fixed" name="ub_right_lateral_raise_offset">
+      <parent link="ub_right_lateral_raise_jointbody" />
+      <child link="ub_link" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link_6">
+      <inertial>
+         <origin xyz="0.0 0.0 -0.00526283" rpy="1.5707963267948966 -1.5707963267948966 0.0" />
+         <mass value="9.12811e-06" />
+         <inertia ixx="2.50441e-09" iyy="1.34113e-09" izz="1.34113e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____3">
+         <origin xyz="-8.21389484206847e-11 5.729707680535157e-10 -0.005648615536060485" rpy="1.5707963267948966 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____3_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_link2ub_link_6_fixed">
+      <parent link="ub_link" />
+      <child link="ub_link_6" />
+      <origin xyz="-0.107 0.019 0.0" rpy="3.1415923267946075 -1.5707920841525222 -2.3267951856364988e-06" />
+   </joint>
+   <link name="ub_2">
+      <inertial>
+         <origin xyz="1.0596e-07 -0.0358135 0.00494636" rpy="0.5900105190576904 0.0 0.0" />
+         <mass value="0.000109184" />
+         <inertia ixx="7.05186e-08" iyy="6.4606e-08" izz="5.34477e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub_____">
+         <origin xyz="-1.3966867497966495e-07 -0.028637523020835123 0.0027645898481237045" rpy="0.9287724243260542 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub______0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_right_arm_twist_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_right_arm_twist">
+      <parent link="ub_link_6" />
+      <child link="ub_right_arm_twist_jointbody" />
+      <origin xyz="0.0 0.0 0.0" rpy="1.5708005694372709 0.0 0.0" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="3.0" velocity="0.9" />
+   </joint>
+   <joint type="fixed" name="ub_right_arm_twist_offset">
+      <parent link="ub_right_arm_twist_jointbody" />
+      <child link="ub_2" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_113">
+      <inertial>
+         <origin xyz="-0.0415412 0.00244773 0.005" rpy="-3.0311146450215136 -1.5707963267948963 0.0" />
+         <mass value="3.28667e-05" />
+         <inertia ixx="2.99967e-08" iyy="2.69306e-08" izz="3.61387e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____113">
+         <origin xyz="-0.042180396137478704 0.0027319246732437673 0.005000002682209487" rpy="-3.0255057062751782 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____113_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_22ub_113_fixed">
+      <parent link="ub_2" />
+      <child link="ub_113" />
+      <origin xyz="0.025 -0.0334 -0.01" rpy="1.5708003267948967 -8.000045070843953e-12 1.5708003267948967" />
+   </joint>
+   <link name="ub_fake_motor_">
+      <inertial>
+         <origin xyz="0.0250001 0.0175865 0.0149464" rpy="0.5900105190576904 0.0 0.0" />
+         <mass value="0.000109184" />
+         <inertia ixx="7.05186e-08" iyy="6.4606e-08" izz="5.34477e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub_____">
+         <origin xyz="0.02499986025556132 0.024762476979164876 0.012764589848123706" rpy="0.9287724243260542 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub______0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_1132ub_fake_motor__fixed">
+      <parent link="ub_113" />
+      <child link="ub_fake_motor_" />
+      <origin xyz="-0.0896 -0.0104 0.0" rpy="3.141592653589793 1.5707920841525227 3.141592653589793" />
+   </joint>
+   <link name="ub_112">
+      <inertial>
+         <origin xyz="-0.026293 0.00778114 -1.40655e-11" rpy="1.5707963267948966 0.0 1.541229257927359" />
+         <mass value="4.24977e-05" />
+         <inertia ixx="7.55972e-08" iyy="6.78255e-08" izz="8.43373e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____112">
+         <origin xyz="-0.023626163648952647 0.007498807133314592 1.0692558560787546e-07" rpy="1.5707963267948966 0.0 1.54042190616192" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____112_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_right_elbow_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_right_elbow">
+      <parent link="ub_fake_motor_" />
+      <child link="ub_right_elbow_jointbody" />
+      <origin xyz="0.025 0.0534 0.01" rpy="3.141592653589793 -1.5707920841525225 3.141592653589793" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="0.0" upper="2.35619" effort="0.9807" velocity="3.3" />
+   </joint>
+   <joint type="fixed" name="ub_right_elbow_offset">
+      <parent link="ub_right_elbow_jointbody" />
+      <child link="ub_112" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_1">
+      <inertial>
+         <origin xyz="0.0100001 -0.00241349 -0.0350536" rpy="0.5900105190576904 0.0 0.0" />
+         <mass value="0.000109184" />
+         <inertia ixx="7.05186e-08" iyy="6.4606e-08" izz="5.34477e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub_____">
+         <origin xyz="0.009999860331325022 0.004762476979164879 -0.0372354101518763" rpy="0.9287724243260542 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub______0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_1122ub_1_fixed">
+      <parent link="ub_112" />
+      <child link="ub_1" />
+      <origin xyz="-0.1136 0.007 0.01" rpy="3.1415926535620375 1.5707923267948969 -1.5707963268226521" />
+   </joint>
+   <link name="ub_115">
+      <inertial>
+         <origin xyz="0.0616602 -0.0119334 -0.01" rpy="1.5707963267948966 4.440892098500626e-16 1.539054992301574" />
+         <mass value="4.96805e-05" />
+         <inertia ixx="9.91527e-08" iyy="9.36442e-08" izz="7.07255e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____115">
+         <origin xyz="0.06179528734661793 -0.011124366197537844 -0.009999997407445838" rpy="1.5707963267948966 0.0 1.5352047218207567" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____115_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_12ub_115_fixed">
+      <parent link="ub_1" />
+      <child link="ub_115" />
+      <origin xyz="0.0 0.0 -0.065" rpy="1.5708003267948965 8.000045070843953e-12 -1.5708003267948962" />
+   </joint>
+   <link name="ub_114">
+      <inertial>
+         <origin xyz="-0.0415412 0.00244773 -0.005" rpy="-3.0311146450215136 -1.5707963267948963 0.0" />
+         <mass value="3.28667e-05" />
+         <inertia ixx="2.99967e-08" iyy="2.69306e-08" izz="3.61387e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____114">
+         <origin xyz="-0.04218039617520675 0.002731924657529126 -0.005000007152557273" rpy="-3.025505706267451 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____114_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_22ub_114_fixed">
+      <parent link="ub_2" />
+      <child link="ub_114" />
+      <origin xyz="-0.025 -0.0334 -0.01" rpy="1.5708003267948967 -8.000045070843953e-12 1.5708003267948967" />
+   </joint>
+   <link name="ub_l_4">
+      <inertial>
+         <origin xyz="-0.00191471 2.17531e-11 0.0354406" rpy="-0.0973606812281389 0.0 1.5707963267948966" />
+         <mass value="0.000579402" />
+         <inertia ixx="1.61153e-06" iyy="1.39241e-06" izz="1.25484e-06" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub___L">
+         <origin xyz="-0.0018818841629571672 -8.145068871347716e-10 0.04203838144829065" rpy="-0.5368008896505428 0.0 1.5707963267948966" />
+         <geometry>
+            <mesh filename="meshes/converted_ub___L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_left_shoulder_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_left_shoulder">
+      <parent link="ub_link_3" />
+      <child link="ub_left_shoulder_jointbody" />
+      <origin xyz="0.125 0.0 0.325" rpy="1.5708003267948967 -8.000045070843953e-12 1.5708003267948967" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="3.0" velocity="0.9" />
+   </joint>
+   <joint type="fixed" name="ub_left_shoulder_offset">
+      <parent link="ub_left_shoulder_jointbody" />
+      <child link="ub_l_4" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_l_3">
+      <inertial>
+         <origin xyz="-0.0173599 0.0197574 3.76382e-12" rpy="1.5707963267948968 0.0 1.5846724371729655" />
+         <mass value="0.00034083" />
+         <inertia ixx="9.77368e-07" iyy="7.52954e-07" izz="3.27725e-07" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub___L_1">
+         <origin xyz="-0.029313079318634666 0.01930635028373369 1.4603286357939282e-09" rpy="1.5707963267948968 0.0 1.565898699864756" />
+         <geometry>
+            <mesh filename="meshes/converted_ub___L_1_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_left_lateral_raise_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_left_lateral_raise">
+      <parent link="ub_l_4" />
+      <child link="ub_left_lateral_raise_jointbody" />
+      <origin xyz="-0.019 0.0 0.055" rpy="-3.1415906535759155 1.5707923267948969 1.5707943268087745" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="3.0" velocity="0.9" />
+   </joint>
+   <joint type="fixed" name="ub_left_lateral_raise_offset">
+      <parent link="ub_left_lateral_raise_jointbody" />
+      <child link="ub_l_3" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link_7">
+      <inertial>
+         <origin xyz="0.0 0.0 0.00526283" rpy="1.5707963267948966 -1.5707963267948966 0.0" />
+         <mass value="9.12811e-06" />
+         <inertia ixx="2.50441e-09" iyy="1.34113e-09" izz="1.34113e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub_______">
+         <origin xyz="-8.213898311515422e-11 5.729707680535157e-10 0.005648615536060485" rpy="1.5707963267948966 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub________0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_l_32ub_link_7_fixed">
+      <parent link="ub_l_3" />
+      <child link="ub_link_7" />
+      <origin xyz="-0.107 0.019 0.0" rpy="3.1415923267946075 1.5707920841525222 2.3267951856364988e-06" />
+   </joint>
+   <link name="ub_l_2">
+      <inertial>
+         <origin xyz="1.05816e-07 -0.0358135 -0.00494636" rpy="-0.5900105190576904 0.0 0.0" />
+         <mass value="0.000109184" />
+         <inertia ixx="7.05186e-08" iyy="6.4606e-08" izz="5.34477e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____L">
+         <origin xyz="-1.3845203071516377e-07 -0.028637529672275883 -0.002764593860715564" rpy="2.2128202189523165 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_left_arm_twist_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_left_arm_twist">
+      <parent link="ub_link_7" />
+      <child link="ub_left_arm_twist_jointbody" />
+      <origin xyz="0.0 0.0 0.0" rpy="-1.5708005694372709 0.0 0.0" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="3.0" velocity="0.9" />
+   </joint>
+   <joint type="fixed" name="ub_left_arm_twist_offset">
+      <parent link="ub_left_arm_twist_jointbody" />
+      <child link="ub_l_2" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_113_2">
+      <inertial>
+         <origin xyz="-0.0415412 0.00244773 -0.005" rpy="-3.0311146450215136 -1.5707963267948963 0.0" />
+         <mass value="3.28667e-05" />
+         <inertia ixx="2.99967e-08" iyy="2.69306e-08" izz="3.61387e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____113____">
+         <origin xyz="-0.04218039613747876 0.0027319246732437717 -0.005000002682209542" rpy="-3.0255057062751782 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____113_____0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_l_22ub_113_2_fixed">
+      <parent link="ub_l_2" />
+      <child link="ub_113_2" />
+      <origin xyz="0.025 -0.0334 0.01" rpy="-1.5708003267948962 8.000045070843953e-12 1.5708003267948965" />
+   </joint>
+   <link name="ub_l_1">
+      <inertial>
+         <origin xyz="0.0250001 -0.00241349 -0.0149464" rpy="-0.5900105190576904 0.0 0.0" />
+         <mass value="0.000109184" />
+         <inertia ixx="7.05186e-08" iyy="6.4606e-08" izz="5.34477e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____L">
+         <origin xyz="0.024999861472205585 0.0047624703277241165 -0.012764593860715566" rpy="2.2128202189523165 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_113_22ub_l_1_fixed">
+      <parent link="ub_113_2" />
+      <child link="ub_l_1" />
+      <origin xyz="-0.0896 0.0096 0.0" rpy="3.141592653589793 -1.5707920841525225 3.141592653589793" />
+   </joint>
+   <link name="ub_112_2">
+      <inertial>
+         <origin xyz="-0.026293 0.00778114 1.40652e-11" rpy="1.5707963267948966 0.0 1.541229257927359" />
+         <mass value="4.24977e-05" />
+         <inertia ixx="7.55972e-08" iyy="6.78255e-08" izz="8.43373e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____112____">
+         <origin xyz="-0.023626163647977372 0.007498807133153977 -1.0692488477959117e-07" rpy="1.5707963267948966 0.0 1.5404219061599096" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____112_____0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_left_elbow_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_left_elbow">
+      <parent link="ub_l_1" />
+      <child link="ub_left_elbow_jointbody" />
+      <origin xyz="0.025 0.0334 -0.01" rpy="3.141592653589793 1.5707920841525227 3.141592653589793" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="0.0" upper="2.35619" effort="0.9807" velocity="3.3" />
+   </joint>
+   <joint type="fixed" name="ub_left_elbow_offset">
+      <parent link="ub_left_elbow_jointbody" />
+      <child link="ub_112_2" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_l">
+      <inertial>
+         <origin xyz="0.0100001 0.0175865 0.0350536" rpy="-0.5900105190576904 0.0 0.0" />
+         <mass value="0.000109184" />
+         <inertia ixx="7.05186e-08" iyy="6.4606e-08" izz="5.34477e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____L">
+         <origin xyz="0.009999861547969287 0.024762470327724113 0.03723540613928444" rpy="2.2128202189523165 0.0 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____L_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_112_22ub_l_fixed">
+      <parent link="ub_112_2" />
+      <child link="ub_l" />
+      <origin xyz="-0.0936 0.007 -0.01" rpy="-3.1415906535759155 -1.5707923267948967 -1.5707943268087745" />
+   </joint>
+   <link name="ub_115_2">
+      <inertial>
+         <origin xyz="0.0416602 -0.0119334 0.01" rpy="1.5707963267948966 4.440892098500626e-16 1.539054992301574" />
+         <mass value="4.96805e-05" />
+         <inertia ixx="9.91527e-08" iyy="9.36442e-08" izz="7.07255e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____115____">
+         <origin xyz="0.04179528734661786 -0.011124366197537858 0.009999997407446504" rpy="1.5707963267948966 0.0 1.5352047218207567" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____115_____0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_l2ub_115_2_fixed">
+      <parent link="ub_l" />
+      <child link="ub_115_2" />
+      <origin xyz="0.0 0.0 0.065" rpy="-1.5708003267948967 -8.000045070843953e-12 -1.5708003267948967" />
+   </joint>
+   <link name="ub_114_2">
+      <inertial>
+         <origin xyz="-0.0415412 -0.0175523 0.005" rpy="-3.0311146450215136 -1.5707963267948963 0.0" />
+         <mass value="3.28667e-05" />
+         <inertia ixx="2.99967e-08" iyy="2.69306e-08" izz="3.61387e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____114____">
+         <origin xyz="-0.0421803961752063 -0.017268075342470875 0.005000007152557162" rpy="-3.025505706267451 -1.5707963267948966 0.0" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____114_____0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_l_22ub_114_2_fixed">
+      <parent link="ub_l_2" />
+      <child link="ub_114_2" />
+      <origin xyz="-0.025 -0.0334 -0.01" rpy="-1.5708003267948962 8.000045070843953e-12 1.5708003267948965" />
+   </joint>
+   <link name="ub_1_2">
+      <inertial>
+         <origin xyz="0.000119784 -0.00165275 0.016561" rpy="0.21013523540330892 0.4443597158442256 1.5444125160280762" />
+         <mass value="7.94024e-05" />
+         <inertia ixx="3.87423e-08" iyy="3.64559e-08" izz="3.57948e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub____1">
+         <origin xyz="9.290619806399302e-05 -0.0015125776391857527 0.017032068742362544" rpy="0.4533096840256239 0.4703334109169357 1.5446510491766055" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____1_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <joint type="fixed" name="ub_link_32ub_1_2_fixed">
+      <parent link="ub_link_3" />
+      <child link="ub_1_2" />
+      <origin xyz="8.89499e-05 -0.000244298 0.387217" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_sts3215_original_v1_v1">
+      <inertial>
+         <origin xyz="-1.80238e-05 -0.0182323 -0.0248025" rpy="0.002827375071977109 0.002827332470372923 7.99391799259576e-06" />
+         <mass value="1.96221e-05" />
+         <inertia ixx="7.79311e-09" iyy="7.79311e-09" izz="6.37863e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub_STS3215_original_v1_v1">
+         <origin xyz="-2.111310078544565e-05 -0.018235354031848613 -0.02480247012808369" rpy="0.0019051583836007684 0.0019051120825270829 3.6295424514669935e-06" />
+         <geometry>
+            <mesh filename="meshes/converted_ub_STS3215_original_v1_v1_0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_neck_pitch_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_neck_pitch">
+      <parent link="ub_1_2" />
+      <child link="ub_neck_pitch_jointbody" />
+      <origin xyz="0.000314327 -0.0182142 0.0442" rpy="-3.141590000009793 0.0 0.0" />
+      <axis xyz="0.0 -1.0 0.0" />
+      <limit lower="-0.523599" upper="0.523599" effort="0.9807" velocity="3.3" />
+   </joint>
+   <joint type="fixed" name="ub_neck_pitch_offset">
+      <parent link="ub_neck_pitch_jointbody" />
+      <child link="ub_sts3215_original_v1_v1" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link_4">
+      <inertial>
+         <origin xyz="-0.0183608 0.00551241 0.0442142" rpy="-0.31214127728690416 -0.015357428746220592 -0.008208229269315026" />
+         <mass value="0.000128617" />
+         <inertia ixx="1.02247e-07" iyy="9.24549e-08" izz="3.87955e-08" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub___">
+         <origin xyz="-0.018478659667097264 0.006233496722854164 0.0431578101070816" rpy="-0.30505876564476403 -0.00817431692962689 -0.005938875347012373" />
+         <geometry>
+            <mesh filename="meshes/converted_ub____0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_neck_roll_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_neck_roll">
+      <parent link="ub_sts3215_original_v1_v1" />
+      <child link="ub_neck_roll_jointbody" />
+      <origin xyz="0.0182142 -0.0182142 -0.0496049" rpy="3.1415900000097934 0.0 0.0" />
+      <axis xyz="1.0 0.0 0.0" />
+      <limit lower="-0.523599" upper="0.523599" effort="0.9807" velocity="3.3" />
+   </joint>
+   <joint type="fixed" name="ub_neck_roll_offset">
+      <parent link="ub_neck_roll_jointbody" />
+      <child link="ub_link_4" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+   <link name="ub_link_8">
+      <inertial>
+         <origin xyz="-0.00110471 -0.0155578 -0.00114676" rpy="-0.7806173332870432 0.00047833418798015614 -0.00018318823697771602" />
+         <mass value="0.000660563" />
+         <inertia ixx="3.98343e-06" iyy="3.76441e-06" izz="2.80209e-06" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual name="ub__">
+         <origin xyz="-0.0013865980830514886 -0.016496796766661187 0.00019418015019283946" rpy="-0.7728829916698392 0.004520413672325585 0.004950393449946022" />
+         <geometry>
+            <mesh filename="meshes/converted_ub___0d0d0dff.obj" />
+         </geometry>
+      </visual>
+   </link>
+   <link name="ub_neck_yaw_jointbody">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+         <mass value="0.001" />
+         <inertia ixx="1e-09" iyy="1e-09" izz="1e-09" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+   </link>
+   <joint type="revolute" name="ub_neck_yaw">
+      <parent link="ub_link_4" />
+      <child link="ub_neck_yaw_jointbody" />
+      <origin xyz="-0.0185286 1.04307e-10 0.0861951" rpy="0.0 0.0 0.0" />
+      <axis xyz="0.0 0.0 -1.0" />
+      <limit lower="-1.5708" upper="1.5708" effort="0.9807" velocity="3.3" />
+   </joint>
+   <joint type="fixed" name="ub_neck_yaw_offset">
+      <parent link="ub_neck_yaw_jointbody" />
+      <child link="ub_link_8" />
+      <origin xyz="-0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+</robot>

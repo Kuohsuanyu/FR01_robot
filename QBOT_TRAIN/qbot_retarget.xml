@@ -1,0 +1,397 @@
+<mujoco model="kbotv2p0_nohands">
+  <compiler angle="radian"/>
+
+  <default>
+    <default class="robot">
+      <default class="robstride_04">
+        <joint actuatorfrcrange="-120 120" armature="0.04" frictionloss="0.2"/>
+        <general ctrlrange="-120 120"/>
+      </default>
+      <default class="robstride_02">
+        <joint actuatorfrcrange="-17 17" armature="0.0042" frictionloss="0.1"/>
+        <general ctrlrange="-17 17"/>
+      </default>
+      <default class="robstride_03">
+        <joint actuatorfrcrange="-60 60" armature="0.02" frictionloss="0.2"/>
+        <general ctrlrange="-60 60"/>
+      </default>
+      <default class="robstride_00">
+        <joint actuatorfrcrange="-14 14" armature="0.001" frictionloss="0.1"/>
+        <general ctrlrange="-14 14"/>
+      </default>
+      <default class="visual">
+        <geom contype="0" conaffinity="0" group="2" material="visualgeom"/>
+      </default>
+      <default class="collision">
+        <geom contype="0" group="1" priority="1" friction="0.64" solref="0.005" material="collision_material"/>
+
+        <equality solref="0.005" solimp="0.99 0.999 1e-05"/>
+      </default>
+    </default>
+    <default class="ub_main"/>
+  </default>
+
+  <asset>
+    <material name="base_material" rgba="1 0 0 1"/>
+    <material name="Torso_Side_Right_material" rgba="0.098039 0.098039 0.098039 1"/>
+    <material name="imu_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="default_material" rgba="0.7 0.7 0.7 1"/>
+    <material name="collision_material" rgba="1 0.28 0.1 0.9"/>
+    <material name="connector_material" rgba="0.1 0.4 0.9 1"/>
+    <mesh name="Torso_Side_Right.stl" file="meshes/legs/Torso_Side_Right.stl"/>
+    <mesh name="KC_C_104R_PitchHardstopDriven.stl" file="meshes/legs/KC_C_104R_PitchHardstopDriven.stl"/>
+    <mesh name="RS03_3.stl" file="meshes/legs/RS03_3.stl"/>
+    <mesh name="KC_C_202R.stl" file="meshes/legs/KC_C_202R.stl"/>
+    <mesh name="KC_C_401R_R_UpForearmDrive.stl" file="meshes/legs/KC_C_401R_R_UpForearmDrive.stl"/>
+    <mesh name="KB_C_501X_Right_Bayonet_Adapter_Hard_Stop.stl" file="meshes/legs/KB_C_501X_Right_Bayonet_Adapter_Hard_Stop.stl"/>
+    <mesh name="imu.stl" file="meshes/legs/imu.stl"/>
+    <mesh name="KC_C_104L_PitchHardstopDriven.stl" file="meshes/legs/KC_C_104L_PitchHardstopDriven.stl"/>
+    <mesh name="RS03_6.stl" file="meshes/legs/RS03_6.stl"/>
+    <mesh name="KC_C_202L.stl" file="meshes/legs/KC_C_202L.stl"/>
+    <mesh name="KC_C_401L_L_UpForearmDrive.stl" file="meshes/legs/KC_C_401L_L_UpForearmDrive.stl"/>
+    <mesh name="KB_C_501X_Left_Bayonet_Adapter_Hard_Stop.stl" file="meshes/legs/KB_C_501X_Left_Bayonet_Adapter_Hard_Stop.stl"/>
+    <mesh name="KC_D_102R_R_Hip_Yoke_Drive.stl" file="meshes/legs/KC_D_102R_R_Hip_Yoke_Drive.stl"/>
+    <mesh name="RS03_4.stl" file="meshes/legs/RS03_4.stl"/>
+    <mesh name="KC_D_301R_R_Femur_Lower_Drive.stl" file="meshes/legs/KC_D_301R_R_Femur_Lower_Drive.stl"/>
+    <mesh name="KC_D_401R_R_Shin_Drive.stl" file="meshes/legs/KC_D_401R_R_Shin_Drive.stl"/>
+    <mesh name="KB_D_501R_R_LEG_FOOT.collision.stl" file="meshes/legs/KB_D_501R_R_LEG_FOOT.collision.stl"/>
+    <mesh name="KB_D_501R_R_LEG_FOOT.stl" file="meshes/legs/KB_D_501R_R_LEG_FOOT.stl"/>
+    <mesh name="KC_D_102L_L_Hip_Yoke_Drive.stl" file="meshes/legs/KC_D_102L_L_Hip_Yoke_Drive.stl"/>
+    <mesh name="RS03_5.stl" file="meshes/legs/RS03_5.stl"/>
+    <mesh name="KC_D_301L_L_Femur_Lower_Drive.stl" file="meshes/legs/KC_D_301L_L_Femur_Lower_Drive.stl"/>
+    <mesh name="KC_D_401L_L_Shin_Drive.stl" file="meshes/legs/KC_D_401L_L_Shin_Drive.stl"/>
+    <mesh name="KB_D_501L_L_LEG_FOOT.collision.stl" file="meshes/legs/KB_D_501L_L_LEG_FOOT.collision.stl"/>
+    <mesh name="KB_D_501L_L_LEG_FOOT.stl" file="meshes/legs/KB_D_501L_L_LEG_FOOT.stl"/>
+    <mesh name="conn_cover_L" file="meshes/waist/cover_L.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_cover_R" file="meshes/waist/cover_R.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_hip_pitch_L" file="meshes/waist/hip_pitch_L.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_hip_pitch_R" file="meshes/waist/hip_pitch_R.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_hip_static_L" file="meshes/waist/hip_static_L.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_hip_static_R" file="meshes/waist/hip_static_R.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_10" file="meshes/waist/screw_M3_10.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_11" file="meshes/waist/screw_M3_11.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_12" file="meshes/waist/screw_M3_12.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_13" file="meshes/waist/screw_M3_13.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_2" file="meshes/waist/screw_M3_2.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_3" file="meshes/waist/screw_M3_3.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_4" file="meshes/waist/screw_M3_4.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_5" file="meshes/waist/screw_M3_5.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_6" file="meshes/waist/screw_M3_6.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_7" file="meshes/waist/screw_M3_7.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_8" file="meshes/waist/screw_M3_8.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M3_9" file="meshes/waist/screw_M3_9.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M4_14" file="meshes/waist/screw_M4_14.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M4_15" file="meshes/waist/screw_M4_15.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M4_16" file="meshes/waist/screw_M4_16.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M4_17" file="meshes/waist/screw_M4_17.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M4_18" file="meshes/waist/screw_M4_18.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M4_19" file="meshes/waist/screw_M4_19.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M5_0" file="meshes/waist/screw_M5_0.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M5_1" file="meshes/waist/screw_M5_1.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_screw_M5_20" file="meshes/waist/screw_M5_20.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_waist_29" file="meshes/waist/waist_29.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_waist_30" file="meshes/waist/waist_30.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_yoke_hardstop_L" file="meshes/waist/yoke_hardstop_L.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="conn_yoke_hardstop_R" file="meshes/waist/yoke_hardstop_R.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="ub_STS3215_original_v1_v1" file="meshes/upperbody/STS3215_original_v1_v1.stl"/>
+    <mesh name="ub_____" file="meshes/upperbody/____.stl"/>
+    <mesh name="ub____L" file="meshes/upperbody/___L.stl"/>
+    <mesh name="ub____2" file="meshes/upperbody/___2.stl"/>
+    <mesh name="ub___L_1" file="meshes/upperbody/__L_1.stl"/>
+    <mesh name="ub___L" file="meshes/upperbody/__L.stl"/>
+    <mesh name="ub____4" file="meshes/upperbody/___4.stl"/>
+    <mesh name="ub____5" file="meshes/upperbody/___5.stl"/>
+    <mesh name="ub___" file="meshes/upperbody/__.stl"/>
+    <mesh name="ub____1" file="meshes/upperbody/___1.stl"/>
+    <mesh name="ub____" file="meshes/upperbody/___.stl"/>
+    <mesh name="ub____3" file="meshes/upperbody/___3.stl"/>
+    <mesh name="ub_______" file="meshes/upperbody/______.stl"/>
+    <mesh name="ub____112" file="meshes/upperbody/___112.stl"/>
+    <mesh name="ub____112____" file="meshes/upperbody/___112____.stl"/>
+    <mesh name="ub____113" file="meshes/upperbody/___113.stl"/>
+    <mesh name="ub____113____" file="meshes/upperbody/___113____.stl"/>
+    <mesh name="ub____114" file="meshes/upperbody/___114.stl"/>
+    <mesh name="ub____114____" file="meshes/upperbody/___114____.stl"/>
+    <mesh name="ub____115" file="meshes/upperbody/___115.stl"/>
+    <mesh name="ub____115____" file="meshes/upperbody/___115____.stl"/>
+    <mesh name="ub__" file="meshes/upperbody/_.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base" childclass="robot" pos="0 0 1.01948">
+      <joint name="floating_base" type="free"/>
+      <site name="base_site" pos="0 0 0"/>
+      <site name="pelvis_mimic" pos="0 0 0" size="0.025" rgba="1 0 0 1" group="3"/>
+      <camera name="front_camera" pos="0 2 0.5" quat="0 0 0.707107 0.707107" mode="track" fovy="90"/>
+      <camera name="side_camera" pos="-2 0 0.5" quat="-0.5 -0.5 0.5 0.5" mode="track" fovy="90"/>
+      <body name="Torso_Side_Right" pos="0 -0.095 0" quat="0.707105 0 0 0.707108">
+        <inertial pos="0.093177 -0.00092 -0.063462" mass="13.505" diaginertia="0.485847 0.512347 0.0592"/>
+        <site name="torso_mount" pos="0.092719 7e-06 -0.217479" size="0.01" rgba="1 1 0 1"/>
+        <body name="KC_D_102R_R_Hip_Yoke_Drive" pos="0.037469 7e-06 -0.284479" quat="0.5 0.5 0.5 0.5">
+          <inertial pos="-0.005644 -0.004227 -0.038197" mass="0.530428" diaginertia="0.00088 0.001182 0.001271"/>
+          <joint name="dof_right_hip_pitch_04" class="robstride_04" pos="0 0 0" axis="0 0 1" range="-2.21657 1.0472"/>
+          <site name="right_hip_mimic" pos="0 0 0" size="0.02" rgba="0 1 0 1" group="3"/>
+          <geom name="KC_D_102R_R_Hip_Yoke_Drive_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KC_D_102R_R_Hip_Yoke_Drive.stl"/>
+          <body name="RS03_4" pos="-0.02825 -0.03 -0.071" quat="-1.22475e-07 0.707107 1.22474e-07 0.707107">
+            <inertial pos="-0.000249 0.058017 0.02558" mass="2.37318" diaginertia="0.010217 0.003255 0.010667"/>
+            <joint name="dof_right_hip_roll_03" class="robstride_03" pos="0 0 0" axis="0 0 -1" range="-2.26893 0.20944"/>
+            <geom name="RS03_4_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="RS03_4.stl"/>
+            <body name="KC_D_301R_R_Femur_Lower_Drive" pos="0 0.143 0.02425" quat="0.707107 -0.707107 0 0">
+              <inertial pos="-0.001014 -0.013387 0.171456" mass="2.34363" diaginertia="0.015645 0.014172 0.004016"/>
+              <joint name="dof_right_hip_yaw_03" class="robstride_03" pos="0 0 0" axis="0 0 -1" range="-1.5708 1.5708"/>
+              <geom name="KC_D_301R_R_Femur_Lower_Drive_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KC_D_301R_R_Femur_Lower_Drive.stl"/>
+              <body name="KC_D_401R_R_Shin_Drive" pos="0.0205 -0.021 0.212" quat="0.5 0.5 -0.5 -0.5">
+                <inertial pos="-0.024549 0.104152 0.018182" mass="1.67059" diaginertia="0.014672 0.002924 0.014592"/>
+                <joint name="dof_right_knee_04" class="robstride_04" pos="0 0 0" axis="0 0 1" range="-2.70526 0"/>
+                <site name="right_knee_mimic" pos="0 0 0" size="0.02" rgba="0 1 0 1" group="3"/>
+                <geom name="KC_D_401R_R_Shin_Drive_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KC_D_401R_R_Shin_Drive.stl"/>
+                <body name="KB_D_501R_R_LEG_FOOT" pos="-0.03 0.29 0.0351">
+                  <inertial pos="-0.01747 0.032456 -0.015742" mass="0.620712" diaginertia="0.00037 0.002011 0.001945"/>
+                  <joint name="dof_right_ankle_02" class="robstride_02" pos="0 0 0" axis="0 0 1" range="-0.226893 1.25664"/>
+                  <geom name="KB_D_501R_R_LEG_FOOT_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KB_D_501R_R_LEG_FOOT.stl"/>
+                  <geom name="KB_D_501R_R_LEG_FOOT_collision_capsule_0" class="collision" size="0.02 0.0849015" pos="-0.0287785 0.038 -0.029915" quat="0.707107 0 -0.707107 0" type="capsule"/>
+                  <geom name="KB_D_501R_R_LEG_FOOT_visual_capsule_0" class="visual" size="0.02 0.0849015" pos="-0.0287785 0.038 -0.029915" quat="0.707107 0 -0.707107 0" type="capsule" material="Torso_Side_Right_material"/>
+                  <geom name="KB_D_501R_R_LEG_FOOT_collision_capsule_1" class="collision" size="0.02 0.0810285" pos="-0.0246165 0.038 0.001909" quat="0.707107 0 -0.707107 0" type="capsule"/>
+                  <geom name="KB_D_501R_R_LEG_FOOT_visual_capsule_1" class="visual" size="0.02 0.0810285" pos="-0.0246165 0.038 0.001909" quat="0.707107 0 -0.707107 0" type="capsule" material="Torso_Side_Right_material"/>
+                  <site name="right_foot" pos="-0.0283 0.038 -0.014" size="0.105 0.02 0.036" type="box"/>
+                  <site name="right_foot_mimic" pos="-0.0283 0.038 -0.014" size="0.02" rgba="0 0 1 1" group="3"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+        <body name="KC_D_102L_L_Hip_Yoke_Drive" pos="0.147969 7e-06 -0.284479" quat="0.5 -0.5 -0.5 0.5">
+          <inertial pos="-0.005644 0.004227 -0.038197" mass="0.530424" diaginertia="0.00088 0.001182 0.001271"/>
+          <joint name="dof_left_hip_pitch_04" class="robstride_04" pos="0 0 0" axis="0 0 1" range="-1.0472 2.21657"/>
+          <site name="left_hip_mimic" pos="0 0 0" size="0.02" rgba="0 1 0 1" group="3"/>
+          <geom name="KC_D_102L_L_Hip_Yoke_Drive_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KC_D_102L_L_Hip_Yoke_Drive.stl"/>
+          <body name="RS03_5" pos="-0.02825 0.03 -0.071" quat="0.707107 0 0.707107 0">
+            <inertial pos="0.000249 0.058017 0.025578" mass="2.37324" diaginertia="0.010217 0.003255 0.010667"/>
+            <joint name="dof_left_hip_roll_03" class="robstride_03" pos="0 0 0" axis="0 0 -1" range="-0.20944 2.26893"/>
+            <geom name="RS03_5_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="RS03_5.stl"/>
+            <body name="KC_D_301L_L_Femur_Lower_Drive" pos="0 0.143 0.02425" quat="0.707107 -0.707107 0 0">
+              <inertial pos="0.001013 -0.013386 0.171458" mass="2.34363" diaginertia="0.015644 0.014172 0.004016"/>
+              <joint name="dof_left_hip_yaw_03" class="robstride_03" pos="0 0 0" axis="0 0 -1" range="-1.5708 1.5708"/>
+              <geom name="KC_D_301L_L_Femur_Lower_Drive_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KC_D_301L_L_Femur_Lower_Drive.stl"/>
+              <body name="KC_D_401L_L_Shin_Drive" pos="-0.0205 -0.021 0.212" quat="0.5 -0.5 0.5 -0.5">
+                <inertial pos="-0.02455 -0.104154 0.018183" mass="1.67054" diaginertia="0.014672 0.002924 0.014592"/>
+                <joint name="dof_left_knee_04" class="robstride_04" pos="0 0 0" axis="0 0 1" range="0 2.70526"/>
+                <site name="left_knee_mimic" pos="0 0 0" size="0.02" rgba="0 1 0 1" group="3"/>
+                <geom name="KC_D_401L_L_Shin_Drive_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KC_D_401L_L_Shin_Drive.stl"/>
+                <body name="KB_D_501L_L_LEG_FOOT" pos="-0.03 -0.29 0.0351" quat="-1.73205e-07 -1 0 0">
+                  <inertial pos="-0.01747 0.032456 0.015742" mass="0.620712" diaginertia="0.00037 0.002011 0.001945"/>
+                  <joint name="dof_left_ankle_02" class="robstride_02" pos="0 0 0" axis="0 0 -1" range="-1.25664 0.226893"/>
+                  <geom name="KB_D_501L_L_LEG_FOOT_visual" class="visual" type="mesh" material="Torso_Side_Right_material" mesh="KB_D_501L_L_LEG_FOOT.stl"/>
+                  <geom name="KB_D_501L_L_LEG_FOOT_collision_capsule_0" class="collision" size="0.02 0.0784515" pos="-0.0220515 0.037962 -0.001909" quat="0.707107 0 -0.707107 0" type="capsule"/>
+                  <geom name="KB_D_501L_L_LEG_FOOT_visual_capsule_0" class="visual" size="0.02 0.0784515" pos="-0.0220515 0.037962 -0.001909" quat="0.707107 0 -0.707107 0" type="capsule" material="Torso_Side_Right_material"/>
+                  <geom name="KB_D_501L_L_LEG_FOOT_collision_capsule_1" class="collision" size="0.02 0.084752" pos="-0.028928 0.037962 0.02983" quat="0.707107 0 -0.707107 0" type="capsule"/>
+                  <geom name="KB_D_501L_L_LEG_FOOT_visual_capsule_1" class="visual" size="0.02 0.084752" pos="-0.028928 0.037962 0.02983" quat="0.707107 0 -0.707107 0" type="capsule" material="Torso_Side_Right_material"/>
+                  <site name="left_foot" pos="-0.0283 0.038 0.014" size="0.105 0.02 0.036" type="box"/>
+                  <site name="left_foot_mimic" pos="-0.0283 0.038 0.014" size="0.02" rgba="0 0 1 1" group="3"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="waist_leg_conn" pos="0.066 -0.066 -0.349" quat="0.707107 0 0 0.707107">
+        <inertial pos="0 0 0" mass="1" diaginertia="0.005 0.005 0.005"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_cover_L"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_cover_R"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_hip_pitch_L"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_hip_pitch_R"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_hip_static_L"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_hip_static_R"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_10"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_11"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_12"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_13"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_2"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_3"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_4"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_5"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_6"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_7"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_8"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M3_9"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M4_14"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M4_15"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M4_16"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M4_17"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M4_18"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M4_19"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M5_0"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M5_1"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.8 0.7 0.2 1" mesh="conn_screw_M5_20"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_waist_29"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_waist_30"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_yoke_hardstop_L"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" rgba="0.55 0.55 0.6 1" mesh="conn_yoke_hardstop_R"/>
+      </body>
+      <frame name="ub_mount">
+        <body name="ub_root" pos="0.002 0.059 0.436" quat="0.707107 0 0 0.707107">
+          <body name="ub_link_5" pos="-0.061 -8.5485e-11 0">
+            <inertial pos="-7.28854e-11 1.87168e-11 -0.60647" quat="0 0.707107 0 0.707107" mass="0.000286928" diaginertia="6.66113e-07 3.83084e-07 3.39398e-07"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____"/>
+            <body name="ub_link_3" pos="-1.94342e-10 8.5485e-11 -0.6">
+              <inertial pos="3.80503e-06 -0.00520018 0.197447" quat="0.707099 -0.00308783 0.00312655 0.707101" mass="0.00348763" diaginertia="0.000103907 9.02224e-05 4.50958e-05"/>
+              <geom pos="0 0 0.6" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.247059 0.247059 0.247059 1" mesh="ub____5"/>
+              <geom name="imu_marker" size="0.02 0.02 0.02" pos="0 0 0.31" type="box" contype="0" conaffinity="0" rgba="1 0.45 0 1"/>
+              <site name="imu_site" pos="0 0 0.31" size="0.012" rgba="1 0 0 1"/>
+              <body name="ub_link_2" pos="-0.125 0 0.325" quat="0.499998 0.5 0.500002 0.5">
+                <inertial pos="-0.00191471 2.60529e-11 -0.0354406" quat="0.706269 0.0344086 0.0344086 0.706269" mass="0.000579402" diaginertia="1.61153e-06 1.39241e-06 1.25484e-06"/>
+                <joint name="ub_right_shoulder" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5708 1.5708" armature="0.02"/>
+                <site name="right_shoulder_mimic" pos="0 0 0" size="0.02" rgba="1 1 0 1" group="3"/>
+                <geom pos="0 0 0.025" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____4"/>
+                <body name="ub_link" pos="-0.019 0 -0.055" quat="-0.499999 0.500001 0.500001 0.499999">
+                  <inertial pos="-0.0173599 0.0197574 -2.48906e-12" quat="0.496519 0.496519 0.503457 0.503457" mass="0.00034083" diaginertia="9.77368e-07 7.52954e-07 3.27725e-07"/>
+                  <joint name="ub_right_lateral_raise" pos="0 0 0" axis="0 -1 0" limited="true" range="-1.5708 1.5708" armature="0.02"/>
+                  <geom pos="0.155 0.019 0.25" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.498039 0.498039 0.498039 1" mesh="ub____2"/>
+                  <body name="ub_link_6" pos="-0.107 0.019 0" quat="9.38184e-07 0.707108 -9.38187e-07 0.707105">
+                    <inertial pos="0 0 -0.00526283" quat="0.5 0.5 -0.5 0.5" mass="9.12811e-06" diaginertia="2.50441e-09 1.34113e-09 1.34113e-09"/>
+                    <geom pos="-0.05 0.05 -0.007" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.0980392 0.0980392 0.0980392 1" mesh="ub____3"/>
+                    <body name="ub_2" quat="0.707105 0.707108 0 0">
+                      <inertial pos="1.0596e-07 -0.0358135 0.00494636" quat="0.956801 0.290745 0 0" mass="0.000109184" diaginertia="7.05186e-08 6.4606e-08 5.34477e-08"/>
+                      <joint name="ub_right_arm_twist" pos="0 0 0" axis="0 -1 0" limited="true" range="-1.5708 1.5708" armature="0.02"/>
+                      <geom pos="-0.025 -0.006 -0.025" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.960784 0.960784 0.964706 1" mesh="ub_____"/>
+                      <body name="ub_113" pos="0.025 -0.0334 -0.01" quat="0.499998 0.5 0.500002 0.5">
+                        <inertial pos="-0.0415412 0.00244773 0.005" quat="-0.03904 0.706028 0.03904 0.706028" mass="3.28667e-05" diaginertia="2.99967e-08 2.69306e-08 3.61387e-09"/>
+                        <geom pos="0.3204 0.01 0.25" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____113"/>
+                        <body name="ub_fake_motor_" pos="-0.0896 -0.0104 0" quat="0.707105 0 0.707108 0">
+                          <inertial pos="0.0250001 0.0175865 0.0149464" quat="0.956801 0.290745 0 0" mass="0.000109184" diaginertia="7.05186e-08 6.4606e-08 5.34477e-08"/>
+                          <geom pos="-7.57637e-11 0.0474 -0.015" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.960784 0.960784 0.964706 1" mesh="ub_____"/>
+                          <body name="ub_112" pos="0.025 0.0534 0.01" quat="0.707105 0 -0.707108 0">
+                            <inertial pos="-0.026293 0.00778114 -1.40655e-11" quat="0.507337 0.507337 0.492554 0.492554" mass="4.24977e-05" diaginertia="7.55972e-08 6.78255e-08 8.43373e-09"/>
+                            <joint name="ub_right_elbow" pos="0 0 0" axis="0 -1 0" limited="true" range="0 2.35619" armature="0.02"/>
+                            <site name="right_elbow_mimic" pos="0 0 0" size="0.02" rgba="1 0.5 0 1" group="3"/>
+                            <geom pos="0.4 -0.033 0.275" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____112"/>
+                            <body name="ub_1" pos="-0.1136 0.007 0.01" quat="-0.499999 0.500001 -0.500001 -0.499999">
+                              <inertial pos="0.0100001 -0.00241349 -0.0350536" quat="0.956801 0.290745 0 0" mass="0.000109184" diaginertia="7.05186e-08 6.4606e-08 5.34477e-08"/>
+                              <geom pos="-0.015 0.0274 -0.065" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.960784 0.960784 0.964706 1" mesh="ub_____"/>
+                              <body name="ub_115" pos="0 0 -0.065" quat="0.499998 0.5 -0.500002 -0.5">
+                                <inertial pos="0.0616602 -0.0119334 -0.01" quat="0.507872 0.507872 0.492002 0.492002" mass="4.96805e-05" diaginertia="9.91527e-08 9.36442e-08 7.07255e-09"/>
+                                <geom pos="0.5136 0.025 0.265" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____115"/>
+                                <site name="right_hand_mimic" pos="0 0 0" size="0.022" rgba="1 0 1 1" group="3"/>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                      <body name="ub_114" pos="-0.025 -0.0334 -0.01" quat="0.499998 0.5 0.500002 0.5">
+                        <inertial pos="-0.0415412 0.00244773 -0.005" quat="-0.03904 0.706028 0.03904 0.706028" mass="3.28667e-05" diaginertia="2.99967e-08 2.69306e-08 3.61387e-09"/>
+                        <geom pos="0.3204 0.01 0.3" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____114"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+              <body name="ub_l_4" pos="0.125 0 0.325" quat="0.499998 0.5 0.500002 0.5">
+                <inertial pos="-0.00191471 2.17531e-11 0.0354406" quat="0.706269 -0.0344086 -0.0344086 0.706269" mass="0.000579402" diaginertia="1.61153e-06 1.39241e-06 1.25484e-06"/>
+                <joint name="ub_left_shoulder" pos="0 0 0" axis="0 0 -1" limited="true" range="-1.5708 1.5708" armature="0.02"/>
+                <site name="left_shoulder_mimic" pos="0 0 0" size="0.02" rgba="1 1 0 1" group="3"/>
+                <geom pos="0 0 -0.025" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub___L"/>
+                <body name="ub_l_3" pos="-0.019 0 0.055" quat="0.499998 0.500002 0.5 -0.5">
+                  <inertial pos="-0.0173599 0.0197574 3.76382e-12" quat="0.496519 0.496519 0.503457 0.503457" mass="0.00034083" diaginertia="9.77368e-07 7.52954e-07 3.27725e-07"/>
+                  <joint name="ub_left_lateral_raise" pos="0 0 0" axis="0 -1 0" limited="true" range="-1.5708 1.5708" armature="0.02"/>
+                  <geom pos="0.155 0.019 -0.25" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.498039 0.498039 0.498039 1" mesh="ub___L_1"/>
+                  <body name="ub_link_7" pos="-0.107 0.019 0" quat="9.38184e-07 0.707108 9.38187e-07 -0.707105">
+                    <inertial pos="0 0 0.00526283" quat="0.5 0.5 -0.5 0.5" mass="9.12811e-06" diaginertia="2.50441e-09 1.34113e-09 1.34113e-09"/>
+                    <geom pos="-0.05 0.05 0.007" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.0980392 0.0980392 0.0980392 1" mesh="ub_______"/>
+                    <body name="ub_l_2" pos="0 0 0" quat="0.707105 -0.707108 0 0">
+                      <inertial pos="1.05816e-07 -0.0358135 -0.00494636" quat="0.956801 -0.290745 0 0" mass="0.000109184" diaginertia="7.05186e-08 6.4606e-08 5.34477e-08"/>
+                      <joint name="ub_left_arm_twist" pos="0 0 0" axis="0 -1 0" limited="true" range="-1.5708 1.5708" armature="0.02"/>
+                      <geom pos="-0.025 -0.006 0.025" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.960784 0.960784 0.964706 1" mesh="ub____L"/>
+                      <body name="ub_113_2" pos="0.025 -0.0334 0.01" quat="0.499998 -0.5 -0.500002 0.5">
+                        <inertial pos="-0.0415412 0.00244773 -0.005" quat="-0.03904 0.706028 0.03904 0.706028" mass="3.28667e-05" diaginertia="2.99967e-08 2.69306e-08 3.61387e-09"/>
+                        <geom pos="0.3204 0.01 -0.25" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____113____"/>
+                        <body name="ub_l_1" pos="-0.0896 0.0096 0" quat="0.707105 0 -0.707108 0">
+                          <inertial pos="0.0250001 -0.00241349 -0.0149464" quat="0.956801 -0.290745 0 0" mass="0.000109184" diaginertia="7.05186e-08 6.4606e-08 5.34477e-08"/>
+                          <geom pos="-7.57637e-11 0.0274 0.015" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.960784 0.960784 0.964706 1" mesh="ub____L"/>
+                          <body name="ub_112_2" pos="0.025 0.0334 -0.01" quat="0.707105 0 0.707108 0">
+                            <inertial pos="-0.026293 0.00778114 1.40652e-11" quat="0.507337 0.507337 0.492554 0.492554" mass="4.24977e-05" diaginertia="7.55972e-08 6.78255e-08 8.43373e-09"/>
+                            <joint name="ub_left_elbow" pos="0 0 0" axis="0 -1 0" limited="true" range="0 2.35619" armature="0.02"/>
+                            <site name="left_elbow_mimic" pos="0 0 0" size="0.02" rgba="1 0.5 0 1" group="3"/>
+                            <geom pos="0.4 -0.033 -0.275" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____112____"/>
+                            <body name="ub_l" pos="-0.0936 0.007 -0.01" quat="0.499998 0.500002 -0.5 0.5">
+                              <inertial pos="0.0100001 0.0175865 0.0350536" quat="0.956801 -0.290745 0 0" mass="0.000109184" diaginertia="7.05186e-08 6.4606e-08 5.34477e-08"/>
+                              <geom pos="-0.015 0.0474 0.065" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.960784 0.960784 0.964706 1" mesh="ub____L"/>
+                              <body name="ub_115_2" pos="0 0 0.065" quat="0.499998 -0.5 0.500002 -0.5">
+                                <inertial pos="0.0416602 -0.0119334 0.01" quat="0.507872 0.507872 0.492002 0.492002" mass="4.96805e-05" diaginertia="9.91527e-08 9.36442e-08 7.07255e-09"/>
+                                <geom pos="0.4936 0.025 -0.265" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____115____"/>
+                                <site name="left_hand_mimic" pos="0 0 0" size="0.022" rgba="1 0 1 1" group="3"/>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                      <body name="ub_114_2" pos="-0.025 -0.0334 -0.01" quat="0.499998 -0.5 -0.500002 0.5">
+                        <inertial pos="-0.0415412 -0.0175523 0.005" quat="-0.03904 0.706028 0.03904 0.706028" mass="3.28667e-05" diaginertia="2.99967e-08 2.69306e-08 3.61387e-09"/>
+                        <geom pos="0.3204 -0.01 -0.3" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____114____"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+              <body name="ub_1_2" pos="8.89499e-05 -0.000244298 0.387217">
+                <inertial pos="0.000119784 -0.00165275 0.016561" quat="0.711035 -0.0796162 0.228361 0.660259" mass="7.94024e-05" diaginertia="3.87423e-08 3.64559e-08 3.57948e-08"/>
+                <geom pos="0 0 0.21" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub____1"/>
+                <body name="ub_sts3215_original_v1_v1" pos="0.000314327 -0.0182142 0.0442" quat="1.32679e-06 -1 0 0">
+                  <inertial pos="-1.80238e-05 -0.0182323 -0.0248025" quat="0.999998 0.00141368 0.00141367 1.99847e-06" mass="1.96221e-05" diaginertia="7.79311e-09 7.79311e-09 6.37863e-09"/>
+                  <geom pos="-0.0373 -0.0034 -0.035" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub_STS3215_original_v1_v1"/>
+                  <body name="ub_link_4" pos="0.0182142 -0.0182142 -0.0496049" quat="1.32679e-06 1 0 0">
+                    <inertial pos="-0.0183608 0.00551241 0.0442142" quat="0.987803 -0.155463 -0.00694733 -0.00524764" mass="0.000128617" diaginertia="1.02247e-07 9.24549e-08 3.87955e-08"/>
+                    <geom pos="-0.0185286 1.04307e-10 0.116195" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.0980392 0.0980392 0.0980392 1" mesh="ub___"/>
+                    <body name="ub_link_8" pos="-0.0185286 1.04307e-10 0.0861951">
+                      <inertial pos="-0.00110471 -0.0155578 -0.00114676" quat="0.924792 -0.380474 0.000256029 6.29136e-06" mass="0.000660563" diaginertia="3.98343e-06 3.76441e-06 2.80209e-06"/>
+                      <geom pos="-0.00110492 0.000259917 0.0299301" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.627451 0.627451 0.627451 1" mesh="ub__"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </frame>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <general name="dof_right_hip_pitch_04_ctrl" joint="dof_right_hip_pitch_04" ctrlrange="-2.21657 1.0472" forcelimited="true" forcerange="-120 120" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_right_hip_roll_03_ctrl" joint="dof_right_hip_roll_03" ctrlrange="-2.26893 0.20944" forcelimited="true" forcerange="-60 60" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_right_hip_yaw_03_ctrl" joint="dof_right_hip_yaw_03" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-60 60" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_right_knee_04_ctrl" joint="dof_right_knee_04" ctrlrange="-2.70526 0" forcelimited="true" forcerange="-120 120" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_right_ankle_02_ctrl" joint="dof_right_ankle_02" ctrlrange="-0.226893 1.25664" forcelimited="true" forcerange="-17 17" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_left_hip_pitch_04_ctrl" joint="dof_left_hip_pitch_04" ctrlrange="-1.0472 2.21657" forcelimited="true" forcerange="-120 120" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_left_hip_roll_03_ctrl" joint="dof_left_hip_roll_03" ctrlrange="-0.20944 2.26893" forcelimited="true" forcerange="-60 60" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_left_hip_yaw_03_ctrl" joint="dof_left_hip_yaw_03" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-60 60" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_left_knee_04_ctrl" joint="dof_left_knee_04" ctrlrange="0 2.70526" forcelimited="true" forcerange="-120 120" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="dof_left_ankle_02_ctrl" joint="dof_left_ankle_02" ctrlrange="-1.25664 0.226893" forcelimited="true" forcerange="-17 17" biastype="affine" gainprm="150" biasprm="0 -150 -5"/>
+    <general name="ub_right_shoulder_ctrl" joint="ub_right_shoulder" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_right_lateral_raise_ctrl" joint="ub_right_lateral_raise" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_right_arm_twist_ctrl" joint="ub_right_arm_twist" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_right_elbow_ctrl" joint="ub_right_elbow" ctrlrange="0 2.35619" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_left_shoulder_ctrl" joint="ub_left_shoulder" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_left_lateral_raise_ctrl" joint="ub_left_lateral_raise" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_left_arm_twist_ctrl" joint="ub_left_arm_twist" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+    <general name="ub_left_elbow_ctrl" joint="ub_left_elbow" ctrlrange="0 2.35619" forcelimited="true" forcerange="-0.980665 0.980665" biastype="affine" gainprm="12" biasprm="0 -12 -0.8"/>
+  </actuator>
+
+  <sensor>
+    <framepos objtype="site" objname="base_site" name="base_site_pos"/>
+    <framequat objtype="site" objname="base_site" name="base_site_quat"/>
+    <framelinvel objtype="site" objname="base_site" name="base_site_linvel"/>
+    <frameangvel objtype="site" objname="base_site" name="base_site_angvel"/>
+    <velocimeter site="base_site" name="base_site_vel"/>
+    <force site="left_foot" name="left_foot_force"/>
+    <force site="right_foot" name="right_foot_force"/>
+    <touch site="left_foot" name="left_foot_touch"/>
+    <touch site="right_foot" name="right_foot_touch"/>
+    <framequat objtype="site" objname="imu_site" name="imu_site_quat"/>
+    <accelerometer site="imu_site" name="imu_acc"/>
+    <gyro site="imu_site" name="imu_gyro"/>
+    <framepos objtype="site" objname="imu_site" name="imu_site_pos"/>
+    <framelinvel objtype="site" objname="imu_site" name="imu_site_linvel"/>
+    <frameangvel objtype="site" objname="imu_site" name="imu_site_angvel"/>
+    <velocimeter site="imu_site" name="imu_site_vel"/>
+  </sensor>
+</mujoco>

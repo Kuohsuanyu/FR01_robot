@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/home/andykuo/miniconda3/envs/ksim/bin/python -c 'import ksim; print\\([a for a in dir\\(ksim.Metadata\\) if not a.startswith\\('\\\\''__'\\\\''\\)]\\)')",
+      "Bash(/home/andykuo/miniconda3/envs/ksim/bin/python -c \"import ksim; print\\('MITPositionActuators:', hasattr\\(ksim,'MITPositionActuators'\\)\\); print\\('PositionActuators:', hasattr\\(ksim,'PositionActuators'\\)\\)\")",
+      "Bash(/home/andykuo/miniconda3/envs/ksim_clean/bin/python -c ' *)",
+      "Bash(/home/andykuo/miniconda3/envs/ksim/bin/python -c ' *)",
+      "Bash(rm -rf /home/andykuo/.cache/jax/jaxcache)",
+      "Bash(/home/andykuo/miniconda3/envs/ksim/bin/python -u -m train_qbot num_envs=64 batch_size=64 max_steps=3 save_every_n_seconds=10000 valid_every_n_seconds=100000)",
+      "Bash(echo \"PID $!\")",
+      "Bash(/home/andykuo/miniconda3/envs/ksim/bin/pip install *)",
+      "Bash(rm -f /tmp/qbot_smoke.log)",
+      "Bash(rm -rf __pycache__ humanoid_walking_task)",
+      "Bash(/home/andykuo/miniconda3/envs/loco_new/bin/python -c ' *)",
+      "Bash(timeout 240 /home/andykuo/miniconda3/envs/loco_new/bin/python retarget_qbot.py dance1_subject1)",
+      "Bash(/home/andykuo/miniconda3/envs/loco_new/bin/python -c \"import ast; ast.parse\\(open\\('retarget_qbot.py'\\).read\\(\\)\\); print\\('  OK ✓'\\)\")",
+      "Bash(timeout 30 /home/andykuo/miniconda3/envs/ksim/bin/python -c 'import tensorboard; print\\('\\\\''tensorboard'\\\\'', tensorboard.__version__\\)')",
+      "Bash(echo \"exit: $?\")",
+      "Bash(timeout 30 /home/andykuo/miniconda3/envs/ksim/bin/tensorboard --version_tb)",
+      "Bash(pkill -f tensorboard)",
+      "Bash(CUDA_VISIBLE_DEVICES='' /home/andykuo/miniconda3/envs/ksim/bin/tensorboard --logdir /home/andykuo/Downloads/QBOT_TRAIN-20260627T153922Z-3-001/QBOT_TRAIN/humanoid_walking_task --port 6006 --host 0.0.0.0)",
+      "Bash(ps -o pid,etime,time,%cpu,cmd -p 144456)",
+      "Bash(pkill -f \"view.py\")",
+      "Bash(DISPLAY=:1 /home/andykuo/miniconda3/envs/ksim/bin/python -u view.py)",
+      "Bash(MUJOCO_GL=egl /home/andykuo/miniconda3/envs/ksim/bin/python render_pose.py)",
+      "Bash(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader)",
+      "Bash(SP=/home/andykuo/miniconda3/envs/ksim/lib/python3.11/site-packages/ksim *)",
+      "Read(//home/andykuo/miniconda3/envs/ksim/lib/python3.11/site-packages/xax/task/mixins/**)",
+      "Bash(PYTHONUNBUFFERED=1 CUDA_VISIBLE_DEVICES='' TF_CPP_MIN_LOG_LEVEL=3 /home/andykuo/miniconda3/envs/ksim/bin/tensorboard --logdir /home/andykuo/Downloads/QBOT_TRAIN-20260627T153922Z-3-001/QBOT_TRAIN/humanoid_walking_task/run_1/tensorboard --port 6006 --host 127.0.0.1)",
+      "Bash(/home/andykuo/miniconda3/envs/ksim/bin/python measure_speed.py)",
+      "Bash(git clone *)"
+    ],
+    "additionalDirectories": [
+      "/home/andykuo/miniconda3/envs/ksim/lib/python3.11/site-packages/ksim"
+    ]
+  }
+}

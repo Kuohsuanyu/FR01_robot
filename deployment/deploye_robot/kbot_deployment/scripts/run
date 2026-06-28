@@ -1,0 +1,18 @@
+#!/bin/bash
+
+kinfer_file="$(realpath $1)"
+
+cd $(pwd | sed 's/kbot_deployment.*/kbot_deployment/')
+
+scripts/reset_max_torques.sh
+
+if [ -f "$kinfer_file" ]; then
+	ln -f -s "$kinfer_file" model.kinfer
+else
+	echo "File $kinfer_file doesn't exist"
+	exit 1
+fi
+
+shift
+
+sudo -E chrt 80 ~/kbot_deployment/faux-rtos --lpf-cutoff-hz 10 --min-jerk-blend-ms 0 "$@"
