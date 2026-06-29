@@ -19,6 +19,11 @@ target/
 *.bak
 *.tmp
 
+# ---- editor / tool settings (not project code) ----
+.claude/
+.vscode/
+.idea/
+
 # ---- reference repo (re-clone: git clone https://github.com/Red-Rabbit-Robotics/rx1.git) ----
 /rx1/
 
