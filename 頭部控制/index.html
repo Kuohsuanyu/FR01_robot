@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>VR 頭部雲台</title>
+<!-- PWA：iPhone 從「加入主畫面」開啟時無 Safari 外框、真正全螢幕 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VR雲台">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#0f0;overflow:hidden;
+            font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+  /* 左右切分：並排雙眼（左半=左眼、右半=右眼） */
+  #vr{display:flex;width:100vw;height:100vh}
+  #vr video{width:50%;height:100%;object-fit:cover;background:#000}
+  /* 兩眼中央垂直分隔線 */
+  #vr::after{content:"";position:fixed;left:50%;top:0;width:2px;height:100%;
+             background:#000;transform:translateX(-1px)}
+  #overlay{position:fixed;inset:0;display:flex;flex-direction:column;
+           align-items:center;justify-content:center;gap:16px;
+           background:rgba(0,0,0,.85);text-align:center;padding:24px}
+  button{padding:18px 28px;font-size:20px;border:1px solid #0f0;border-radius:10px;
+         background:#021;color:#0f0}
+  #hud{position:fixed;left:8px;top:8px;font-size:12px;line-height:1.5;
+       color:#0f0;background:rgba(0,0,0,.4);padding:6px 8px;border-radius:6px;
+       pointer-events:none;z-index:5}
+  .hint{font-size:14px;color:#7f7;max-width:520px}
+  #recenter{position:fixed;right:8px;top:8px;font-size:13px;padding:8px 12px;z-index:5}
+  #fs{position:fixed;right:8px;top:54px;font-size:13px;padding:8px 12px;z-index:5}
+  /* 沉浸模式(全螢幕觀看)：把所有疊加 UI 收掉，只剩雙眼畫面 */
+  body.immersive #hud, body.immersive #recenter, body.immersive #fs{display:none!important}
+  #mode{position:fixed;right:8px;top:54px;font-size:13px;padding:8px 12px;z-index:5}
+</style>
+</head>
+<body>
+  <div id="vr">
+    <video id="L" autoplay playsinline muted></video>
+    <video id="R" autoplay playsinline muted></video>
+  </div>
+
+  <div id="hud">--</div>
+  <button id="recenter" style="display:none">歸正</button>
+  <button id="fs" style="display:none">全螢幕</button>
+
+  <!-- 校準模式畫面 -->
+  <div id="calview" style="display:none;position:fixed;inset:0;background:#000;color:#0f0;
+       flex-direction:column;align-items:center;justify-content:center;gap:18px;
+       text-align:center;padding:24px;z-index:10">
+    <div style="font-size:15px;color:#7f7;max-width:560px;line-height:1.7">
+      ① 把手機<b>穩定平放/固定</b> → 按「歸零」<br>
+      ② <b>平移</b>手機（前後左右走、不轉）→ 數值應幾乎<b>不變</b>（證明位移不觸發）<br>
+      ③ 分別<b>轉向</b>：左右轉、上下點、左右側傾 → 看哪個數值變、變正或負
+    </div>
+    <div id="calbig" style="font-size:26px;color:#fd6;min-height:34px;font-weight:bold"></div>
+    <div id="calread" style="font-size:18px;font-variant-numeric:tabular-nums;line-height:1.6"></div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+      <button id="calzero">歸零</button>
+      <button id="calexit">結束校準</button>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <h2>VR 頭部雲台</h2>
+    <div class="hint">
+      把手機橫放戴進 Cardboard。<br>
+      按下方按鈕授權動作感測器並進入全螢幕。<br>
+      右上角「歸正」或<b>雙擊畫面</b>＝把目前朝向設為正中央。
+    </div>
+    <button id="start">進入 VR（授權感測器）</button>
+    <button id="cal">校準模式（辨識方向）</button>
+    <div id="ios" style="display:none;color:#fd6;font-size:13px;max-width:520px">
+      📱 iPhone 要真正全螢幕（無 Safari 外框）：<br>
+      按 Safari 下方<b>分享鈕</b> → <b>加入主畫面</b> → 從主畫面的「VR雲台」圖示開啟。
+    </div>
+    <div id="err" style="color:#f66;font-size:13px"></div>
+  </div>
+
+<script>
+const L = document.getElementById('L');
+const R = document.getElementById('R');
+const hud = document.getElementById('hud');
+const overlay = document.getElementById('overlay');
+const errBox = document.getElementById('err');
+const calview = document.getElementById('calview');
+const calread = document.getElementById('calread');
+const calbig = document.getElementById('calbig');
+
+let dc = null;
+let calWs = null;
+let calActive = false;
+let raw = {yaw:0, pitch:0, roll:0};     // 感測器最新原始角度(度)
+let offset = {yaw:0, pitch:0, roll:0};  // 歸正零點
+let last = {yaw:0, pitch:0, roll:0};
+let haveData = false;
+let autoCentered = false;   // 首次取得 IMU 資料時自動歸正一次
+
+function setStatus(s){ hud.textContent = s; }
+
+async function start(){
+  try {
+    // iOS Safari：必須在使用者點擊當下請求權限
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      const p = await DeviceOrientationEvent.requestPermission();
+      if (p !== 'granted') throw new Error('使用者拒絕了動作感測器權限');
+    }
+
+    // 影像走 WebRTC（H.264/UDP），靠 STUN 與你家公網 IP 做 P2P 直連 → 最低延遲
+    const pc = new RTCPeerConnection({iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'},
+    ]});
+    pc.addTransceiver('video', {direction:'recvonly'});
+    dc = pc.createDataChannel('pose');               // IMU 走 DataChannel（連上後也是 P2P）
+
+    pc.ontrack = (e) => {                             // 同一路影像餵左右兩眼
+      L.srcObject = e.streams[0];
+      R.srcObject = e.streams[0];
+    };
+    pc.onconnectionstatechange = () => setStatus('連線: ' + pc.connectionState);
+
+    const off = await pc.createOffer();
+    await pc.setLocalDescription(off);
+    const res = await fetch('/offer', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({sdp: off.sdp, type: off.type})
+    });
+    await pc.setRemoteDescription(await res.json());
+
+    startSensors();
+    requestAnimationFrame(pump);
+
+    overlay.style.display = 'none';
+    document.getElementById('recenter').style.display = 'block';
+    document.getElementById('fs').style.display = 'block';
+    goFullscreen();   // 進場先嘗試一次（部分瀏覽器需再按「全螢幕」鈕）
+  } catch (e) {
+    errBox.textContent = '錯誤: ' + e.message;
+  }
+}
+
+// ── 感測器來源：優先用高頻陀螺儀(RelativeOrientationSensor, 60Hz, 低延遲)，否則退回 deviceorientation ──
+function startSensors(){
+  if ('RelativeOrientationSensor' in window) {
+    try {
+      const sensor = new RelativeOrientationSensor({frequency: 60, referenceFrame: 'device'});
+      sensor.addEventListener('reading', () => { quatToEuler(sensor.quaternion); haveData = true; });
+      sensor.addEventListener('error', () => fallbackOrient());
+      sensor.start();
+      setStatus('感測器: 陀螺儀 60Hz');
+      return;
+    } catch (e) { /* 落到下面的後備 */ }
+  }
+  fallbackOrient();
+}
+
+function fallbackOrient(){
+  setStatus('感測器: deviceorientation');
+  window.addEventListener('deviceorientation', (ev) => {
+    if (ev.alpha === null) return;
+    raw = {yaw: ev.alpha, pitch: ev.beta, roll: ev.gamma};
+    haveData = true;
+  }, true);
+}
+
+// 四元數 [x,y,z,w] → yaw/pitch/roll(度)
+function quatToEuler(q){
+  const [x, y, z, w] = q, ysqr = y*y, D = 180/Math.PI;
+  const roll  = Math.atan2(2*(w*x + y*z), 1 - 2*(x*x + ysqr));
+  let s = 2*(w*y - z*x); s = Math.max(-1, Math.min(1, s));
+  const pitch = Math.asin(s);
+  const yaw   = Math.atan2(2*(w*z + x*y), 1 - 2*(ysqr + z*z));
+  raw = {yaw: yaw*D, pitch: pitch*D, roll: roll*D};
+}
+
+// 送姿態：VR 模式走 WebRTC DataChannel；校準模式走輕量 WebSocket
+function sendPose(p){
+  const s = JSON.stringify(p);
+  if (dc && dc.readyState === 'open') dc.send(s);
+  else if (calWs && calWs.readyState === 1) calWs.send(s);
+}
+
+// 以螢幕更新率(~60fps)穩定送出最新姿態，與感測器事件解耦 → 不卡頓
+function pump(){
+  if (haveData) {
+    // VR 模式戴上後自動歸正；校準模式不自動歸正（要手動按歸零做基準）
+    if (!autoCentered && !calActive) { recenter(); autoCentered = true; }
+    last = {
+      yaw:   wrap(raw.yaw - offset.yaw),
+      pitch: raw.pitch - offset.pitch,
+      roll:  raw.roll - offset.roll,
+    };
+    setStatus(`yaw ${last.yaw.toFixed(0)}  pitch ${last.pitch.toFixed(0)}  roll ${last.roll.toFixed(0)}`);
+    sendPose(last);
+    if (calActive) updateCalView(last);
+  }
+  requestAnimationFrame(pump);
+}
+
+// ── 雲台預覽（與 neck_gimbal.py 的 AXES 對應；改向就改 dir）──
+const TPD = 4096 / 360;   // tick/度
+const GIMBAL = {
+  // dir 方向 / center 零位 / lo-hi 限位 / pos=tick>center 時的方向字 / neg=tick<center
+  yaw:   {dir:+1, scale:1.0, center:2047, lo:1000, hi:3000, label:'左右轉', pos:'雲台→右轉', neg:'雲台→左轉'},
+  pitch: {dir:+1, scale:1.0, center:2047, lo:1500, hi:3000, label:'上下',   pos:'雲台→抬頭', neg:'雲台→低頭'},
+  roll:  {dir:+1, scale:1.0, center:2047, lo:1500, hi:2500, label:'側傾',   pos:'雲台→左傾', neg:'雲台→右傾'},
+};
+function gimbalPreview(name, deg){
+  const g = GIMBAL[name];
+  let tick = Math.round(g.center + g.dir * g.scale * deg * TPD);
+  let limited = false;
+  if (tick < g.lo){ tick = g.lo; limited = true; }
+  else if (tick > g.hi){ tick = g.hi; limited = true; }
+  const dir = tick > g.center ? g.pos : (tick < g.center ? g.neg : '雲台→中心');
+  return {tick, dir, limited};
+}
+
+// 校準畫面：頭怎麼動 → 雲台會怎麼變（接雲台前先確認方向正負）
+function updateCalView(p){
+  const names = ['yaw', 'pitch', 'roll'];
+  calread.innerHTML = names.map(n => {
+    const g = GIMBAL[n], r = gimbalPreview(n, p[n]);
+    return `<div style="margin:5px 0">`
+      + `<span style="color:#9cf">${g.label}</span> `
+      + `頭 <b style="color:#fff">${p[n].toFixed(0)}°</b> → `
+      + `tick <b style="color:#fd6">${r.tick}</b> `
+      + `<b style="color:#0f0">${r.dir}</b>`
+      + (r.limited ? ` <span style="color:#f66">限位</span>` : '')
+      + `</div>`;
+  }).join('');
+  // 大字：目前主要在動的軸 + 雲台方向（快速確認正負）
+  const a = names.map(n => [n, p[n]]).sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]));
+  const [dn, dv] = a[0];
+  calbig.textContent = Math.abs(dv) > 8
+    ? `${GIMBAL[dn].label}：${gimbalPreview(dn, dv).dir}`
+    : '穩定／平移中（雲台不動）';
+}
+
+async function startCalibration(){
+  try {
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      const pm = await DeviceOrientationEvent.requestPermission();
+      if (pm !== 'granted') throw new Error('使用者拒絕了動作感測器權限');
+    }
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    calWs = new WebSocket(proto + '//' + location.host + '/pose');
+    calActive = true;
+    offset = {yaw: 0, pitch: 0, roll: 0};   // 校準從原始值開始，按歸零才設基準
+    startSensors();
+    requestAnimationFrame(pump);
+    overlay.style.display = 'none';
+    document.getElementById('calview').style.display = 'flex';
+  } catch (e) {
+    errBox.textContent = '錯誤: ' + e.message;
+  }
+}
+
+function wrap(a){ a = (a + 180) % 360; if (a < 0) a += 360; return a - 180; } // -180..180
+
+function recenter(){ offset = {yaw: raw.yaw, pitch: raw.pitch, roll: raw.roll}; } // 立即以最新值歸零
+
+// ── 全螢幕（收掉瀏覽器網址列/導覽列，雙眼畫面填滿螢幕） ──
+function goFullscreen(){
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen;
+  if (req) req.call(el).catch(()=>{});
+  if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
+}
+
+// 進入/離開全螢幕時，自動收起/顯示所有疊加 UI → 觀看時無遮擋
+function onFsChange(){
+  const fs = document.fullscreenElement || document.webkitFullscreenElement;
+  document.body.classList.toggle('immersive', !!fs);
+}
+document.addEventListener('fullscreenchange', onFsChange);
+document.addEventListener('webkitfullscreenchange', onFsChange);
+
+// iOS 偵測：Safari 不支援網頁全螢幕 → 提示用「加入主畫面」；已從主畫面開啟(standalone)就免提示
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = window.navigator.standalone === true ||
+                   window.matchMedia('(display-mode: fullscreen)').matches ||
+                   window.matchMedia('(display-mode: standalone)').matches;
+if (isIOS && !standalone) {
+  document.getElementById('ios').style.display = 'block';   // 顯示加入主畫面教學
+}
+
+document.getElementById('start').onclick = start;
+document.getElementById('recenter').onclick = recenter;
+document.getElementById('fs').onclick = goFullscreen;
+window.addEventListener('dblclick', recenter);
+
+// 校準模式
+document.getElementById('cal').onclick = startCalibration;
+document.getElementById('calzero').onclick = recenter;          // 設目前姿態為基準(零)
+document.getElementById('calexit').onclick = () => location.reload();
+
+// iOS Safari 的全螢幕鈕無效 → 進場後把它收掉，避免誤會（改用「加入主畫面」）
+if (isIOS && !standalone) {
+  document.getElementById('start').addEventListener('click', () => {
+    setTimeout(() => { document.getElementById('fs').style.display = 'none'; }, 0);
+  });
+}
+</script>
+</body>
+</html>
