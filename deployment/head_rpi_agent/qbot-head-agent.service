@@ -1,0 +1,19 @@
+[Unit]
+Description=Q-BOT head Raspberry Pi agent (motor + camera bridge)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust User/Group + WorkingDirectory + ExecStart for your deployment.
+User=pi
+Group=dialout
+WorkingDirectory=/home/pi/qbot/head_rpi_agent
+ExecStart=/usr/bin/env python3 /home/pi/qbot/head_rpi_agent/agent.py --port 8000
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

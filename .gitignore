@@ -44,3 +44,9 @@ QBOT_TRAIN/humanoid_walking_task/run_0/policy/current_pose.txt
 *.mp4
 pose_*.png
 rollout.*
+
+# ---- head IMU (auto-gen) ----
+upper_body_control/head_imu_cert.pem
+upper_body_control/head_imu_key.pem
+upper_body_control/qbot_arm_calibration.json
+

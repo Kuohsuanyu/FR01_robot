@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Q-BOT Head IMU</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    background: #111820; color: #d0e0f0;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; gap: 14px;
+    -webkit-user-select: none; user-select: none;
+  }
+  h1 { font-size: 1.3em; margin: 0; color: #eef4fc; }
+  button {
+    font-size: 1.05em; padding: 14px 28px; border: 0; border-radius: 10px;
+    background: #1e4870; color: white; font-weight: 600;
+    min-width: 220px; touch-action: manipulation;
+  }
+  button:active { background: #2a6090; }
+  button:disabled { background: #25333f; color: #6080a0; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .label { color: #6080a0; font-size: 0.85em; }
+  .pose {
+    width: 100%; max-width: 320px;
+    font-family: ui-monospace, "Menlo", monospace;
+    font-size: 1.25em; line-height: 1.5;
+    background: #1c2a3a; border-radius: 12px; padding: 14px 18px;
+  }
+  .pose b { color: #7ed3ff; display: inline-block; width: 5ch; }
+  .pose i { color: #50c880; font-style: normal; }
+  .status { font-size: 1.0em; font-weight: bold; }
+  .status.ok  { color: #50c880; }
+  .status.bad { color: #e05858; }
+  .status.warn { color: #d09840; }
+  .hint { color: #6080a0; font-size: 0.85em; max-width: 320px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>Q-BOT 頭部 IMU</h1>
+  <button id="start">啟動感測器</button>
+  <div class="row">
+    <span class="label">WebSocket:</span>
+    <span id="conn" class="status bad">未連線</span>
+    <button id="reconnect" style="display:none; min-width:80px; padding:6px 12px;">重連</button>
+  </div>
+  <div class="pose">
+    <div><b>yaw</b>  <i id="y">—</i>°</div>
+    <div><b>pitch</b> <i id="p">—</i>°</div>
+    <div><b>roll</b> <i id="r">—</i>°</div>
+    <div><span class="label">rate:</span> <span id="rate">0</span> Hz</div>
+  </div>
+  <div class="hint">
+    啟動感測器後,在 PC 端 GUI 按「Calibrate」設定目前姿態為零位
+  </div>
+<script>
+"use strict";
+let ws = null, started = false, retryT = null, retryDelay = 500;
+let sendT = 0, frames = 0, rateT = performance.now();
+let lastMsgT = 0;
+const $ = id => document.getElementById(id);
+const yEl = $('y'), pEl = $('p'), rEl = $('r'), rateEl = $('rate');
+const connEl = $('conn'), startBtn = $('start'), reBtn = $('reconnect');
+
+function setConn(text, cls) {
+  connEl.textContent = text; connEl.className = 'status ' + cls;
+}
+
+function scheduleReconnect() {
+  reBtn.style.display = 'inline-block';
+  if (retryT) clearTimeout(retryT);
+  retryT = setTimeout(() => { retryT = null; connect(); }, retryDelay);
+  retryDelay = Math.min(retryDelay * 1.5, 5000);   // backoff: 0.5→0.75→…→5s
+}
+
+function connect() {
+  if (ws && (ws.readyState === 0 || ws.readyState === 1)) {
+    try { ws.close(); } catch (e) {}
+  }
+  setConn('連線中…', 'warn');
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  try {
+    ws = new WebSocket(`${proto}://${location.host}/pose`);
+  } catch (e) { scheduleReconnect(); return; }
+  ws.onopen  = () => { setConn('已連線 ✓', 'ok'); reBtn.style.display = 'none'; retryDelay = 500; };
+  ws.onclose = () => { setConn('斷線中…重連', 'warn'); scheduleReconnect(); };
+  ws.onerror = () => { setConn('錯誤(等重連)', 'bad'); };
+}
+
+reBtn.onclick = () => { retryDelay = 500; if (retryT) clearTimeout(retryT); connect(); };
+
+// 螢幕睡醒 / app 切回前景 → 立刻試重連 (iOS Safari 會在背景暫停 WS)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && started) {
+    if (!ws || ws.readyState !== 1) { retryDelay = 500; connect(); }
+  }
+});
+
+// 60 秒沒收到任何訊息 → 視為斷線,強制重連
+setInterval(() => {
+  if (!started) return;
+  if (ws && ws.readyState === 1 && performance.now() - lastMsgT > 60000) {
+    try { ws.close(); } catch (e) {}
+  }
+}, 5000);
+
+function onOrientation(e) {
+  // alpha 0..360  around Z (compass, yaw)
+  // beta -180..180 around X (front-back, pitch)
+  // gamma -90..90  around Y (left-right tilt, roll)
+  const yaw   = e.alpha === null ? 0 : e.alpha;
+  const pitch = e.beta  === null ? 0 : e.beta;
+  const roll  = e.gamma === null ? 0 : e.gamma;
+  yEl.textContent = yaw.toFixed(1);
+  pEl.textContent = pitch.toFixed(1);
+  rEl.textContent = roll.toFixed(1);
+
+  if (!ws || ws.readyState !== 1) return;
+  const now = performance.now();
+  if (now - sendT < 18) return;        // throttle ~55 Hz
+  sendT = now;
+  try { ws.send(JSON.stringify({ yaw, pitch, roll })); }
+  catch (e) { scheduleReconnect(); return; }
+  lastMsgT = now;
+  frames++;
+  if (now - rateT > 500) {
+    rateEl.textContent = Math.round(frames * 1000 / (now - rateT));
+    frames = 0; rateT = now;
+  }
+}
+
+startBtn.onclick = async () => {
+  if (started) return;
+  // iOS Safari: requires explicit permission from a user gesture.
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const r = await DeviceOrientationEvent.requestPermission();
+      if (r !== 'granted') { alert('感測器未授權'); return; }
+    } catch (e) { alert('感測器錯誤: ' + e); return; }
+  }
+  window.addEventListener('deviceorientation', onOrientation, true);
+  started = true;
+  startBtn.textContent = '感測器已啟動';
+  startBtn.disabled = true;
+  connect();
+};
+
+// keep screen awake (only available on Chromium-based; iOS Safari ignores)
+if ('wakeLock' in navigator) {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) navigator.wakeLock.request('screen').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

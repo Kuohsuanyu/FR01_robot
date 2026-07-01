@@ -27,6 +27,7 @@ IK uses J1-J4 only (J0 has no URDF link yet; manual override slider).
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 import queue
@@ -51,6 +52,21 @@ MJCF_PATH = os.path.normpath(os.path.join(HERE, "..", "QBOT_MJCF", "qbot.xml"))
 STEPS_PER_RAD = 2048.0 / math.pi
 CENTER = 2048
 DEFAULT_PORT = "/dev/ttyACM0"
+# CH343 USB-serial serial number printed on the arm adapter; used to auto-find
+# the right /dev/ttyACM* even after a reconnect bumps the device index.
+ARM_USB_SERIAL = "5AE6082200"
+
+
+def _find_arm_port(default=DEFAULT_PORT):
+    """Return /dev/ttyACM* whose USB serial number matches ARM_USB_SERIAL."""
+    try:
+        import serial.tools.list_ports as _lp
+        for p in _lp.comports():
+            if (p.serial_number or "").upper() == ARM_USB_SERIAL.upper():
+                return p.device
+    except Exception:
+        pass
+    return default
 DEFAULT_BAUD = 1_000_000
 ADDR_TORQUE_ENABLE = 40
 ADDR_PRESENT_VOLTAGE = 62
@@ -121,19 +137,34 @@ class World:
         mujoco.mj_forward(self.model, self.data)
         self._baseline_ncon = self.data.ncon
 
+    # ghost vs highlight colours (see apply_arm_highlight)
+    _GHOST_RGBA  = [0.40, 0.45, 0.52, 0.42]   # translucent grey-blue
+    _SOLID_RGBA  = [0.95, 0.55, 0.20, 1.00]   # warm orange (currently tested)
+
     def _apply_ghost_palette(self):
         m = self.model
         m.vis.headlight.ambient[:] = [0.55, 0.55, 0.6]
-        m.vis.headlight.diffuse[:] = [0.85, 0.85, 0.9]
+        m.vis.headlight.diffuse[:] = [0.9, 0.9, 0.92]
         m.vis.headlight.specular[:] = [0.3, 0.3, 0.35]
-        GREY = 0.42; ALPHA = 0.55
         for i in range(m.nmat):
-            m.mat_rgba[i] = [GREY, GREY + 0.05, GREY + 0.12, ALPHA]
-            m.mat_specular[i] = 0.4
+            m.mat_rgba[i] = self._GHOST_RGBA
+            m.mat_specular[i] = 0.35
             m.mat_shininess[i] = 0.3
         for i in range(m.ngeom):
-            a = m.geom_rgba[i, 3]
-            m.geom_rgba[i] = [GREY, GREY + 0.05, GREY + 0.12, ALPHA]
+            m.geom_rgba[i] = self._GHOST_RGBA
+
+    def apply_arm_highlight(self, arm_key: str):
+        """Paint the active arm's geoms solid orange; everything else ghost."""
+        m = self.model
+        # 1) reset everything to ghost
+        for i in range(m.ngeom):
+            m.geom_rgba[i] = self._GHOST_RGBA
+        # 2) collect bodies of the active arm
+        bids = {self.bid[n] for n in ARMS[arm_key]["arm_bodies"] if n in self.bid}
+        # 3) repaint geoms that live in those bodies
+        for i in range(m.ngeom):
+            if m.geom_bodyid[i] in bids:
+                m.geom_rgba[i] = self._SOLID_RGBA
 
     def _build_indices(self):
         m = self.model
@@ -313,10 +344,28 @@ class App:
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
         self.bus = Bus()
-        self.active = "L"
+        self.active = "R"     # right arm is the one currently wired up
         # store q per arm so switching doesn't lose pose
         self.q_by_arm = {"L": np.zeros(5), "R": np.zeros(5)}
         self.q = self.q_by_arm[self.active]
+        # ── per-joint calibration: 2-point linear mapping
+        # Each joint has (tick_lo, q_lo, tick_hi, q_hi).  Sending motor:
+        #   step = tick_lo + (q - q_lo) * (tick_hi - tick_lo) / (q_hi - q_lo)
+        # Reading motor:
+        #   q_read = q_lo + (step - tick_lo) * (q_hi - q_lo) / (tick_hi - tick_lo)
+        # Default is derived from the nominal gear ratio in ARMS[], so out of
+        # the box it behaves identically to the old offset+dir+gear formula.
+        # Users can override either end-point via "Set Lo"/"Set Hi" buttons
+        # (captures the current motor tick + ghost q) or edit numerically.
+        # ``cal_trim`` is an extra per-joint nudge that ONLY moves the ghost
+        # (does not affect motor commands), for visually aligning ghost to real.
+        self.cal_points = {arm: self._default_cal_points(arm)
+                           for arm in ("L", "R")}
+        self.cal_trim = {"L": np.zeros(5), "R": np.zeros(5)}
+        self.cal_path = os.path.join(HERE, "qbot_arm_calibration.json")
+        self._load_cal()
+        # live-send throttle (per joint, 25 Hz)
+        self._last_motor_send_t = [0.0] * 5
         self._suppress_slider = False
         # drag state
         self._drag = None        # 'ee' | 'orbit' | 'pan' | None
@@ -331,9 +380,82 @@ class App:
         self._stop = threading.Event()
 
         self._build_ui()
-        self.world.set_arm_qpos(self.active, self.q)
+        self.world.set_arm_qpos(self.active, self._ghost_q())
+        self.world.apply_arm_highlight(self.active)  # start with active arm solid
         self._refresh_slider_meta()
+        self._refresh_cal_ui()
         self._render_to_canvas()
+
+    # ── calibration helpers ──────────────────────────────────────────────────
+    def _default_cal_points(self, arm):
+        """Single-turn-safe default: motor tick 0..4095 maps to joint range
+        ±π/gear (i.e., one full motor revolution = ``2π / gear`` rad joint
+        side, centred on tick 2048 = q 0).  Better than naively scaling the
+        MJCF joint limits because for gear=4 that would put tick at -2048
+        and 6144 (way outside 0-4095) — useless until the user calibrates."""
+        pts = []
+        for sid, label, gear, lo, hi, jname in ARMS[arm]["joints"]:
+            half_q = math.pi / gear              # half joint range (rad)
+            pts.append({
+                "tick_lo": 0.0,
+                "q_lo":    float(-half_q),
+                "tick_hi": 4095.0,
+                "q_hi":    float(+half_q),
+            })
+        return pts
+
+    def _ghost_q(self):
+        """Joint angles the ghost should display (rad). Trim adds visual nudge."""
+        return self.q + self.cal_trim[self.active]
+
+    def _q_to_step(self, i, q_val=None, arm=None):
+        """Linear interp from command-frame q (rad) to motor tick."""
+        arm = arm or self.active
+        if q_val is None: q_val = self.q[i]
+        p = self.cal_points[arm][i]
+        denom = p["q_hi"] - p["q_lo"]
+        if abs(denom) < 1e-9: return int(round(p["tick_lo"]))
+        return int(round(p["tick_lo"]
+                         + (q_val - p["q_lo"])
+                         * (p["tick_hi"] - p["tick_lo"]) / denom))
+
+    def _step_to_q(self, i, step, arm=None):
+        """Inverse of _q_to_step — used when reading motor pos."""
+        arm = arm or self.active
+        p = self.cal_points[arm][i]
+        denom = p["tick_hi"] - p["tick_lo"]
+        if abs(denom) < 1e-9: return 0.0
+        return (p["q_lo"]
+                + (step - p["tick_lo"])
+                * (p["q_hi"] - p["q_lo"]) / denom)
+
+    def _load_cal(self):
+        if not os.path.exists(self.cal_path): return
+        try:
+            d = json.load(open(self.cal_path))
+            for arm in ("L", "R"):
+                pts = d.get(arm)
+                if not pts: continue
+                if isinstance(pts, list) and len(pts) == 5 and isinstance(pts[0], dict):
+                    # new 2-point format
+                    self.cal_points[arm] = [
+                        {k: float(p.get(k, 0)) for k in
+                         ("tick_lo", "q_lo", "tick_hi", "q_hi")}
+                        for p in pts
+                    ]
+        except Exception as e:
+            print(f"[cal] load failed: {e}")
+
+    def _save_cal(self):
+        d = {arm: [{k: float(v) for k, v in p.items()}
+                   for p in self.cal_points[arm]]
+             for arm in ("L", "R")}
+        try:
+            with open(self.cal_path, "w") as f:
+                json.dump(d, f, indent=2)
+            self.status_var.set(f"校準存到 {self.cal_path}")
+        except Exception as e:
+            self.status_var.set(f"save cal failed: {e}")
 
         threading.Thread(target=self._poll_loop, daemon=True).start()
         self.root.after(150, self._drain_tele)
@@ -390,13 +512,22 @@ class App:
         bar = tk.Frame(p, bg=C["card"]); bar.pack(fill="x", padx=6, pady=(6, 4))
         tk.Label(bar, text="Port:", bg=C["card"], fg=C["text"]
                  ).pack(side="left", padx=(6, 2))
-        self.port_var = tk.StringVar(value=DEFAULT_PORT)
+        self.port_var = tk.StringVar(value=_find_arm_port())
         tk.Entry(bar, textvariable=self.port_var, width=14,
                  bg=C["bg"], fg=C["text"], insertbackground=C["text"]
                  ).pack(side="left")
         self.connect_btn = tk.Button(bar, text="Connect", bg=C["btn"], fg="white",
                                      command=self._toggle_connect, width=10)
         self.connect_btn.pack(side="left", padx=6)
+        # Live: when ON, the joint sliders push their motor live (throttled).
+        # OFF = old behaviour, use the explicit "Send to Robot" button.
+        self.live_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(bar, text="Live (拖即送)",
+                       variable=self.live_var,
+                       bg=C["card"], fg=C["ok"], activebackground=C["card"],
+                       activeforeground=C["ok"], selectcolor=C["panel"],
+                       font=("DejaVu Sans Mono", 9, "bold")
+                       ).pack(side="left", padx=4)
         self.conn_var = tk.StringVar(value="● 未連線")
         tk.Label(bar, textvariable=self.conn_var, bg=C["card"], fg=C["err"]
                  ).pack(side="right", padx=8)
@@ -485,6 +616,47 @@ class App:
                  variable=self.acc_var, bg=C["panel"], fg=C["text"],
                  highlightthickness=0, troughcolor=C["card"]).pack(side="left")
 
+        # ── calibration panel ─────────────────────────────────────────────
+        # Workflow: open Live → drag joint slider until real arm hits its
+        # physical limit → press [Lo] (or [Hi]) → that motor tick + ghost-side
+        # angle become this end-point of the 2-point linear mapping.
+        cal = tk.LabelFrame(p,
+                            text=" 校準 (拖到實機極限 → 點 Lo/Hi 紀錄) ",
+                            bg=C["panel"], fg=C["text"],
+                            font=("DejaVu Sans Mono", 10, "bold"))
+        cal.pack(fill="x", padx=6, pady=4)
+        self.cal_labels = []   # per joint: StringVar showing "Lo: tick @ q  /  Hi: tick @ q"
+        for i in range(5):
+            row = tk.Frame(cal, bg=C["card"]); row.pack(fill="x", padx=4, pady=1)
+            tk.Label(row, text=f"J{i}", width=3, bg=C["card"],
+                     fg=C["bright"], font=("DejaVu Sans Mono", 10, "bold")
+                     ).pack(side="left", padx=1)
+            tk.Button(row, text="←Lo (記錄此處為下限)", width=22,
+                      bg=C["btn"], fg="white",
+                      font=("DejaVu Sans Mono", 9),
+                      command=lambda i=i: self._capture_lo(i)
+                      ).pack(side="left", padx=2)
+            tk.Button(row, text="←Hi (記錄此處為上限)", width=22,
+                      bg=C["btn"], fg="white",
+                      font=("DejaVu Sans Mono", 9),
+                      command=lambda i=i: self._capture_hi(i)
+                      ).pack(side="left", padx=2)
+            lv = tk.StringVar(value="—")
+            self.cal_labels.append(lv)
+            tk.Label(row, textvariable=lv, bg=C["card"], fg=C["target"],
+                     font=("DejaVu Sans Mono", 9), anchor="w"
+                     ).pack(side="left", fill="x", expand=True, padx=4)
+
+        # cal action row
+        cb = tk.Frame(cal, bg=C["panel"]); cb.pack(fill="x", padx=4, pady=4)
+        tk.Button(cb, text="Reset to default", bg=C["btn"], fg="white",
+                  command=self._reset_cal, width=16
+                  ).pack(side="left", padx=2)
+        tk.Button(cb, text="Save", bg=C["btn"], fg="white",
+                  command=self._save_cal, width=8).pack(side="right", padx=2)
+        tk.Button(cb, text="Reload", bg=C["btn"], fg="white",
+                  command=self._reload_cal, width=8).pack(side="right", padx=2)
+
         # actions
         ab = tk.Frame(p, bg=C["panel"]); ab.pack(fill="x", padx=6, pady=4)
         tk.Button(ab, text="HOME (q=0)", bg=C["btn"], fg="white",
@@ -494,6 +666,8 @@ class App:
                   ).pack(side="left", padx=2)
         tk.Button(ab, text="E-STOP", bg=C["btn_danger"], fg="white",
                   command=self._estop, width=10).pack(side="right", padx=2)
+        tk.Button(ab, text="↻ 重啟", bg=C["btn"], fg="white",
+                  command=self._restart, width=8).pack(side="right", padx=2)
 
         # status
         self.status_var = tk.StringVar(value="ready")
@@ -520,7 +694,9 @@ class App:
         self.q[i] = math.radians(deg)
         self.q_by_arm[self.active] = self.q
         self.cmd_vars[i].set(f"{deg:+6.1f}°")
-        self.world.set_arm_qpos(self.active, self.q)
+        self.world.set_arm_qpos(self.active, self._ghost_q())
+        # if Live: also send the matching motor (throttled per joint)
+        self._maybe_send_motor(i)
         # also flag collision in status if any
         if self.world.check_self_collision(self.active):
             self.status_var.set("⚠ self-collision (slider move)")
@@ -530,19 +706,37 @@ class App:
             self.err_lbl.config(fg=C["ok"])
             self.err_var.set("ok")
 
+    def _maybe_send_motor(self, i: int):
+        """Push joint i to its motor live (if Live toggle on)."""
+        if not (self.bus.is_open() and getattr(self, "live_var", None)
+                and self.live_var.get()):
+            return
+        now = time.monotonic()
+        if now - self._last_motor_send_t[i] < 0.04:   # 25 Hz per joint
+            return
+        self._last_motor_send_t[i] = now
+        sid = ARMS[self.active]["joints"][i][0]
+        step = max(0, min(4095, self._q_to_step(i)))
+        self.bus.write_pos(sid, step,
+                           int(self.speed_var.get()),
+                           int(self.acc_var.get()))
+
     def _on_arm_change(self):
         # preserve outgoing pose under its key
         self.q_by_arm[self.active] = self.q.copy()
         self.active = self.arm_var.get()
         self.q = self.q_by_arm[self.active]      # restore (or start at zeros)
-        self.world.set_arm_qpos(self.active, self.q)
+        self.world.set_arm_qpos(self.active, self._ghost_q())
+        # repaint: the arm we just switched TO becomes solid; the other goes ghost
+        self.world.apply_arm_highlight(self.active)
         self._refresh_slider_meta()
+        self._refresh_cal_ui()
         self.status_var.set(f"切換到 {self.active} arm")
 
     def _home(self):
         self.q[:] = 0.0
         self.q_by_arm[self.active] = self.q
-        self.world.set_arm_qpos(self.active, self.q)
+        self.world.set_arm_qpos(self.active, self._ghost_q())
         self._refresh_slider_meta()
         self.err_var.set(""); self.status_var.set("HOME (虛擬,未送馬達)")
 
@@ -646,7 +840,7 @@ class App:
     def _on_lmb_release(self, ev):
         if self._drag == "ee" and self._drag_collide:
             # snap back if collided
-            self.world.set_arm_qpos(self.active, self.q)
+            self.world.set_arm_qpos(self.active, self._ghost_q())
         self._drag = None
         self._drag_collide = False
 
@@ -720,7 +914,17 @@ class App:
             self.connect_btn.config(text="Connect", bg=C["btn"])
             self.conn_var.set("● 未連線")
             return
-        ok, msg = self.bus.open(self.port_var.get().strip(), DEFAULT_BAUD)
+        port = self.port_var.get().strip()
+        ok, msg = self.bus.open(port, DEFAULT_BAUD)
+        if not ok:
+            # device name may have bumped (ttyACM0 → ttyACM1) after a USB
+            # reconnect glitch — auto-retry using the USB serial number
+            auto = _find_arm_port(default=port)
+            if auto != port:
+                ok2, msg2 = self.bus.open(auto, DEFAULT_BAUD)
+                if ok2:
+                    self.port_var.set(auto)
+                    ok, msg = True, f"retry@{auto}"
         if ok:
             self.connect_btn.config(text="Disconnect", bg=C["btn_danger"])
             self.conn_var.set("● 已連線")
@@ -737,8 +941,7 @@ class App:
         spec = ARMS[self.active]
         spd = int(self.speed_var.get()); acc = int(self.acc_var.get())
         for i, (sid, label, gear, lo, hi, jname) in enumerate(spec["joints"]):
-            step = int(round(self.q[i] * STEPS_PER_RAD * gear)) + CENTER
-            step = max(0, min(4095, step))
+            step = max(0, min(4095, self._q_to_step(i)))
             self.bus.write_pos(sid, step, spd, acc)
         self.status_var.set(f"sent {self.active}  q={np.degrees(self.q).round(1).tolist()}")
 
@@ -749,6 +952,46 @@ class App:
             for sid, *_ in spec["joints"]:
                 self.bus.torque(sid, False)
         self.status_var.set("E-STOP — all torque off")
+
+    # ── calibration handlers ─────────────────────────────────────────────────
+    def _capture_lo(self, i): self._capture(i, "lo")
+    def _capture_hi(self, i): self._capture(i, "hi")
+
+    def _capture(self, i, side):
+        sid = ARMS[self.active]["joints"][i][0]
+        if not self.bus.is_open():
+            self.status_var.set("尚未連線 — 無法擷取 tick"); return
+        pos, _, comm, _ = self.bus._pk.ReadPosSpeed(sid)
+        if comm != COMM_SUCCESS:
+            self.status_var.set(f"J{i} 馬達無回應"); return
+        ghost = self.q[i]   # current slider q (ghost-side, rad)
+        p = self.cal_points[self.active][i]
+        if side == "lo":
+            p["tick_lo"] = float(pos); p["q_lo"] = float(ghost)
+        else:
+            p["tick_hi"] = float(pos); p["q_hi"] = float(ghost)
+        self._refresh_cal_ui()
+        self.status_var.set(
+            f"J{i} {side} ← tick={int(pos)}  鬼影 q={math.degrees(ghost):+.1f}°")
+
+    def _reset_cal(self):
+        self.cal_points[self.active] = self._default_cal_points(self.active)
+        self._refresh_cal_ui()
+        self.status_var.set("校準回到預設(依 gear 自動推算)")
+
+    def _reload_cal(self):
+        self._load_cal()
+        self._refresh_cal_ui()
+        self.status_var.set("校準已從 JSON 重新載入")
+
+    def _refresh_cal_ui(self):
+        """Show each joint's current 2-point mapping in its status label."""
+        arm = self.active
+        for i in range(5):
+            p = self.cal_points[arm][i]
+            self.cal_labels[i].set(
+                f"Lo {p['tick_lo']:.0f}@{math.degrees(p['q_lo']):+5.1f}°    "
+                f"Hi {p['tick_hi']:.0f}@{math.degrees(p['q_hi']):+5.1f}°")
 
     # ── telemetry ────────────────────────────────────────────────────────────
     def _poll_loop(self):
@@ -770,8 +1013,9 @@ class App:
                     self.volt_vars[i].set("—"); self.temp_vars[i].set("—")
                 else:
                     pos, v, t = r
-                    rad = (pos - CENTER) / STEPS_PER_RAD / gear
-                    self.read_vars[i].set(f"{math.degrees(rad):+6.1f}°")
+                    # invert 2-point linear mapping → command-frame q
+                    rad_q = self._step_to_q(i, pos)
+                    self.read_vars[i].set(f"{math.degrees(rad_q):+6.1f}°")
                     self.step_vars[i].set(f"{pos:5d}")
                     self.volt_vars[i].set(f"{v:4.1f}V" if v == v else "—")
                     self.temp_vars[i].set(f"{t:3d}°C")
@@ -789,6 +1033,17 @@ class App:
                 self.bus.close()
         finally:
             self.root.destroy()
+
+    def _restart(self):
+        """Re-exec self.  Leaves motors holding their last target (no E-STOP).
+        Use the E-STOP button beforehand if you want torque off across restart."""
+        self._stop.set()
+        try:
+            if self.bus.is_open(): self.bus.close()
+            self.root.destroy()
+        except Exception:
+            pass
+        os.execvp(sys.executable, [sys.executable, sys.argv[0]] + sys.argv[1:])
 
     def run(self):
         self.root.mainloop()
