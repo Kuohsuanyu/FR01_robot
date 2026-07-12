@@ -1,0 +1,32 @@
+{
+  "_note": "腿部 policy 驗證基準:上傳的 .kinfer 需與此相容(關節名稱一致、指令數相同)。從已知可運行的 eloquent_ride.kinfer 擷取。",
+  "required_members": [
+    "init_fn.onnx",
+    "step_fn.onnx",
+    "metadata.json"
+  ],
+  "joint_names": [
+    "dof_left_hip_pitch_04",
+    "dof_left_hip_roll_03",
+    "dof_left_hip_yaw_03",
+    "dof_left_knee_04",
+    "dof_left_ankle_02",
+    "dof_right_hip_pitch_04",
+    "dof_right_hip_roll_03",
+    "dof_right_hip_yaw_03",
+    "dof_right_knee_04",
+    "dof_right_ankle_02",
+    "dof_right_shoulder_pitch_03",
+    "dof_right_shoulder_roll_03",
+    "dof_right_shoulder_yaw_02",
+    "dof_right_elbow_02",
+    "dof_right_wrist_00",
+    "dof_left_shoulder_pitch_03",
+    "dof_left_shoulder_roll_03",
+    "dof_left_shoulder_yaw_02",
+    "dof_left_elbow_02",
+    "dof_left_wrist_00"
+  ],
+  "num_joints": 20,
+  "num_commands": 16
+}
