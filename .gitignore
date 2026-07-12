@@ -55,3 +55,4 @@ arm/qbot_arm_calibration.json
 head/rpi_agent/agent_cert.pem
 head/rpi_agent/agent_key.pem
 
+exo/exo_arm_align.json
