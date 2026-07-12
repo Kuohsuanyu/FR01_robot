@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Q-BOT VR head</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #000; color: #eee; overflow: hidden;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+    font-family: -apple-system, "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  /* Default full-frame (single eye) — .stage.vr switches to twin-square VR mode. */
+  .stage { display: flex; width: 100vw; height: 100vh;
+           align-items: center; justify-content: center; }
+  .eye {
+    flex: 1; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .eye img {
+    height: 100%; width: auto; max-width: none;
+    object-fit: cover;
+  }
+  /* VR mode: two centred squares with a black gap between them so the
+     Cardboard lenses each see one square frame instead of a stretched
+     rectangle bleeding across the plastic divider.  IPD (gap) and zoom
+     are CSS variables so they can be tuned live from the overlay. */
+  .stage.vr {
+    --vr-gap:   40px;                 /* IPD gap between squares            */
+    --vr-scale: 1.0;                  /* image zoom inside each eye         */
+    gap: var(--vr-gap);
+    padding: 0 4vw;
+    background: #000;
+  }
+  .stage.vr .eye {
+    flex: 0 0 auto;
+    width:  min(45vw, 95vh);
+    height: min(45vw, 95vh);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .stage.vr .eye img {
+    width: 100%; height: 100%; object-fit: cover;
+    transform: scale(var(--vr-scale));
+    transform-origin: center center;
+  }
+  /* WebGL canvas per eye — only visible when barrel distortion is on
+     (`.stage.vr.warp` class).  Otherwise the plain <img> shows through. */
+  .stage.vr .eye canvas { display: none; width: 100%; height: 100%; }
+  .stage.vr.warp .eye img    { display: none; }
+  .stage.vr.warp .eye canvas { display: block; }
+  /* VR-only inline controls in the overlay */
+  .vr-slider { display: inline-flex; align-items: center; gap: 4px;
+               font-size: .8em; }
+  .vr-slider input[type=range] { width: 90px; }
+  .vr-slider label { color: #7ed3ff; }
+  #overlay {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    background: rgba(0,0,0,.72);
+    color: #eee; z-index: 10;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    transition: opacity .3s, transform .3s;
+  }
+  #overlay.hidden { opacity: 0; transform: translateY(-100%); pointer-events: none; }
+  button {
+    font-size: 1.0em; padding: 10px 16px; border: 0; border-radius: 8px;
+    background: #1e4870; color: white; font-weight: 600;
+    touch-action: manipulation;
+  }
+  button:disabled { background: #253540; color: #789; }
+  button.on  { background: #2e7d32; }
+  button.off { background: #7a2828; }
+  .status { display: inline-block; margin-left: 4px; }
+  .status.ok { color: #50c880; font-weight: bold; }
+  .status.bad { color: #e05858; }
+  .status.warn { color: #d09840; }
+  #pose {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: .85em; color: #7ed3ff; margin-left: auto;
+  }
+  #tap-hint {
+    position: fixed; bottom: 12px; left: 0; right: 0;
+    text-align: center; color: #789; font-size: .75em;
+    pointer-events: none;
+  }
+  /* Calibration wizard giant text — visible from Cardboard */
+  #wizard {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(0,0,0,.88); color: #fff;
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 20px;
+  }
+  #wizard.visible { display: flex; }
+  #wizard.rec { background: rgba(80,0,0,.88); }
+  #wiz-title  { font-size: 2.4em; font-weight: 800; margin-bottom: 12px; }
+  #wiz-msg    { font-size: 1.4em; color: #ffd040; margin-bottom: 20px; }
+  #wiz-count  { font-size: 6em; font-weight: 900; color: #7ed3ff; }
+  #wiz-count.rec { color: #ff6060; }
+  #wiz-skip   {
+    position: absolute; bottom: 20px; right: 20px;
+    background: #333; color: #ccc; font-size: .8em; padding: 6px 10px;
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="eye">
+      <img src="/mjpeg" id="eyeL">
+      <canvas id="eyeL-gl" width="1024" height="1024"></canvas>
+    </div>
+    <div class="eye">
+      <img src="/mjpeg" id="eyeR">
+      <canvas id="eyeR-gl" width="1024" height="1024"></canvas>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <button id="start">START (權限)</button>
+    <button id="active" class="off" disabled>頭部控制 OFF</button>
+    <button id="wizard-btn" disabled>校準精靈</button>
+    <button id="calibrate" disabled>快速歸零</button>
+    <button id="fullscreen">全螢幕 (VR)</button>
+    <button id="vr-toggle">VR 分屏</button>
+    <span class="vr-slider">
+      <label>間距</label>
+      <input id="vr-gap" type="range" min="0" max="120" value="40" step="2">
+      <span id="vr-gap-val">40</span>
+    </span>
+    <span class="vr-slider">
+      <label>縮放</label>
+      <input id="vr-scale" type="range" min="70" max="140" value="100" step="2">
+      <span id="vr-scale-val">100%</span>
+    </span>
+    <span class="vr-slider">
+      <label>透鏡</label>
+      <input id="vr-warp" type="range" min="0" max="80" value="0" step="1">
+      <span id="vr-warp-val">0</span>
+    </span>
+    <span class="vr-slider">
+      <label>色散</label>
+      <input id="vr-chroma" type="range" min="0" max="30" value="0" step="1">
+      <span id="vr-chroma-val">0</span>
+    </span>
+    <span>WS:</span><span id="ws" class="status bad">未連</span>
+    <span id="pose">y=—  p=—  r=—</span>
+  </div>
+  <div id="tap-hint">畫面點一下 = 顯示 / 隱藏面板</div>
+
+  <div id="wizard">
+    <div id="wiz-title">開始校準</div>
+    <div id="wiz-msg">請把頭部朝正前方</div>
+    <div id="wiz-count">5</div>
+    <button id="wiz-skip">跳過</button>
+  </div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const startBtn = $("start"), activeBtn = $("active");
+const calBtn = $("calibrate"), wizBtn = $("wizard-btn");
+const wsEl = $("ws"), poseEl = $("pose"), overlay = $("overlay");
+const wizEl = $("wizard"), wizTitle = $("wiz-title"),
+      wizMsg = $("wiz-msg"), wizCount = $("wiz-count"),
+      wizSkip = $("wiz-skip");
+
+let started = false, imuActive = false;
+let ws = null, retryT = null, retryDelay = 500;
+let lastSentT = 0;
+let lastPose = null;
+
+// ── wizard state ───────────────────────────────────────────────────────────
+// Sequence: idle → [prep 5s "get ready"] → then for each anchor:
+//   [prep 5s "instruction"] → [record 5s samples] → next
+// Anchors: forward / yaw_left / yaw_right / pitch_up / pitch_down
+// Each entry has a `speak` string spoken via Web Speech API when the phase
+// starts, plus a `recSpeak` said at the start of the record phase.
+// Between every "extreme" pose (left/right/up/down) we insert a "return to
+// center" prep-only phase so the operator resets before the next extreme —
+// keeps IMU deltas clean.
+const WIZ_SEQ = [
+  {key:"start_wait", title:"開始校準",   msg:"10 秒後開始 (放置手機)",  record:false,
+   speak:"10 秒後開始校準,請把手機放好,頭朝正前方"},
+  {key:"forward",    title:"朝前不動",   msg:"頭部朝正前方",            record:true,
+   speak:"請把頭朝正前方",           recSpeak:"開始紀錄,保持不動"},
+  {key:"yaw_left",   title:"向左轉頭",   msg:"頭部轉向你的左側最遠",    record:true,
+   speak:"請把頭轉向你的左側最遠",   recSpeak:"開始紀錄,保持不動"},
+  {key:"center_1",   title:"回正",       msg:"請把頭回到正前方",        record:false,
+   speak:"請把頭回到正前方"},
+  {key:"yaw_right",  title:"向右轉頭",   msg:"頭部轉向你的右側最遠",    record:true,
+   speak:"請把頭轉向你的右側最遠",   recSpeak:"開始紀錄,保持不動"},
+  {key:"center_2",   title:"回正",       msg:"請把頭回到正前方",        record:false,
+   speak:"請把頭回到正前方"},
+  {key:"pitch_up",   title:"抬頭向上",   msg:"頭部朝上最遠",            record:true,
+   speak:"請抬頭朝上最遠",           recSpeak:"開始紀錄,保持不動"},
+  {key:"center_3",   title:"回正",       msg:"請把頭回到正前方",        record:false,
+   speak:"請把頭回到正前方"},
+  {key:"pitch_down", title:"低頭向下",   msg:"頭部朝下最遠",            record:true,
+   speak:"請低頭朝下最遠",           recSpeak:"開始紀錄,保持不動"},
+];
+
+// ── Text-to-speech helper (Web Speech API) ───────────────────────────────
+// iOS Safari and Android Chrome both support SpeechSynthesis natively.
+// User tap on START unlocks audio, so all subsequent speak() calls work.
+function speak(text, rate) {
+  try {
+    if (typeof speechSynthesis === "undefined") return;
+    // cancel any pending / in-progress speech so instructions don't overlap
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-TW";
+    u.rate = rate || 1.05;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+    speechSynthesis.speak(u);
+  } catch (e) { /* silent */ }
+}
+let wiz = null;    // { idx, phase:"prep"|"record", tLeft, samples:[] }
+let wizResult = {}; // filled per anchor
+
+function setWs(text, cls) { wsEl.textContent = text; wsEl.className = "status " + cls; }
+
+function connect() {
+  const url = `wss://${location.host}/pose_ws`;
+  setWs("連線中…", "warn");
+  try { ws = new WebSocket(url); }
+  catch (e) { scheduleReconnect(); return; }
+  ws.onopen  = () => { setWs("已連線 ✓", "ok"); retryDelay = 500;
+                       activeBtn.disabled = false;
+                       calBtn.disabled = false;
+                       wizBtn.disabled = false; };
+  ws.onclose = () => { setWs("斷線…重連", "warn"); scheduleReconnect(); };
+  ws.onerror = () => { setWs("錯誤", "bad"); };
+}
+function scheduleReconnect() {
+  if (retryT) clearTimeout(retryT);
+  retryT = setTimeout(connect, retryDelay);
+  retryDelay = Math.min(retryDelay * 1.5, 4000);
+}
+
+async function keepAwake() {
+  try { await navigator.wakeLock.request("screen"); } catch (e) {}
+}
+
+function onOrient(e) {
+  const yaw   = e.alpha === null ? 0 : e.alpha;
+  const pitch = e.beta  === null ? 0 : e.beta;
+  const roll  = e.gamma === null ? 0 : e.gamma;
+  lastPose = { yaw, pitch, roll };
+  poseEl.textContent =
+    `y=${yaw.toFixed(0)}  p=${pitch.toFixed(0)}  r=${roll.toFixed(0)}`;
+  // wizard sample collection
+  if (wiz && wiz.phase === "record") {
+    wiz.samples.push([yaw, pitch, roll]);
+  }
+  if (!ws || ws.readyState !== 1) return;
+  const now = performance.now();
+  if (now - lastSentT < 18) return;
+  lastSentT = now;
+  try { ws.send(JSON.stringify({ yaw, pitch, roll })); } catch(e){}
+}
+
+async function beginSensors() {
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function") {
+    try {
+      const r = await DeviceOrientationEvent.requestPermission();
+      if (r !== "granted") { alert("未授權感測器"); return false; }
+    } catch (e) { alert("感測器錯誤: " + e); return false; }
+  }
+  window.addEventListener("deviceorientation", onOrient, true);
+  return true;
+}
+
+startBtn.onclick = async () => {
+  if (started) return;
+  // Unlock speech synthesis while we still have the user-gesture context
+  // (required on iOS Safari — subsequent speak() calls then work).
+  try {
+    const primer = new SpeechSynthesisUtterance("");
+    speechSynthesis.speak(primer);
+    // brief hello so operator knows audio is on
+    speak("語音已啟動");
+  } catch (e) {}
+  const ok = await beginSensors();
+  if (!ok) return;
+  keepAwake();
+  connect();
+  const el = document.documentElement;
+  try { await el.requestFullscreen({navigationUI:"hide"}); } catch(e){}
+  try { await screen.orientation.lock("landscape"); } catch(e){}
+  startBtn.textContent = "感測器已啟動";
+  startBtn.disabled = true;
+  started = true;
+  // Auto-launch wizard after a short delay so WS has time to connect.
+  setTimeout(() => startWizard(), 800);
+};
+
+activeBtn.onclick = () => {
+  if (!ws || ws.readyState !== 1) return;
+  imuActive = !imuActive;
+  ws.send(JSON.stringify({ cmd: "active", on: imuActive }));
+  activeBtn.textContent = "頭部控制 " + (imuActive ? "ON" : "OFF");
+  activeBtn.className = imuActive ? "on" : "off";
+};
+
+calBtn.onclick = () => {
+  if (!ws || ws.readyState !== 1) return;
+  ws.send(JSON.stringify({ cmd: "calibrate" }));
+  calBtn.textContent = "已歸零";
+  setTimeout(() => calBtn.textContent = "快速歸零", 900);
+};
+
+wizBtn.onclick = () => startWizard();
+wizSkip.onclick = () => finishWizard(true);
+
+// ── Fullscreen (VR headset) + Wake Lock ─────────────────────────────────
+// iOS Safari + Android Chrome both support the Fullscreen API on user
+// gesture.  We also request a screen wake lock so the phone display
+// doesn't dim / sleep while the operator is in the headset.
+let _wakeLock = null;
+async function _tryWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      _wakeLock = await navigator.wakeLock.request("screen");
+      _wakeLock.addEventListener("release", () => { _wakeLock = null; });
+    }
+  } catch (e) { console.warn("wakeLock err", e); }
+}
+document.addEventListener("visibilitychange", () => {
+  // Some browsers drop the lock when tab hidden — re-acquire on return.
+  if (document.visibilityState === "visible" && !_wakeLock) _tryWakeLock();
+});
+
+$("fullscreen").onclick = async () => {
+  const el = document.documentElement;
+  try {
+    if (!document.fullscreenElement) {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen
+                  || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (req) await req.call(el, { navigationUI: "hide" });
+      if (screen.orientation && screen.orientation.lock) {
+        try { await screen.orientation.lock("landscape"); } catch(e){}
+      }
+      await _tryWakeLock();
+      // Auto-enable VR split when entering fullscreen — this is what the
+      // headset actually wants; toggle back with the "VR 分屏" button.
+      document.getElementById("stage").classList.add("vr");
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen
+                   || document.mozCancelFullScreen || document.msExitFullscreen;
+      if (exit) await exit.call(document);
+      if (_wakeLock) { try { await _wakeLock.release(); } catch(e){} _wakeLock = null; }
+    }
+  } catch (e) {
+    alert("全螢幕失敗:" + e);
+  }
+};
+
+// Manual VR split toggle (works without fullscreen too for previewing)
+$("vr-toggle").onclick = () => {
+  document.getElementById("stage").classList.toggle("vr");
+  _tryWakeLock();       // if wake lock supported, grab it on any user tap
+};
+
+// ── VR barrel distortion via WebGL ───────────────────────────────────────
+// A Cardboard-style lens introduces pincushion distortion (edges pulled
+// toward centre), so we pre-warp the display with the opposite (barrel)
+// so the two cancel out at the eye.  Chromatic aberration slider lets us
+// also pre-shift R/B channels to compensate the lens's RGB defocus.
+//
+//   K1 (from slider "透鏡")  = radial coefficient — larger = stronger warp
+//   CA (from slider "色散")   = per-channel radial offset — matches lens
+//
+// When K1==0 we skip WebGL entirely (canvas hidden, plain <img> shown) so
+// the fast path stays free.  When K1>0 we upload the shared /mjpeg <img>
+// as a texture and render both eye canvases at ~30 fps.
+const eyeL_img = $("eyeL"), eyeR_img = $("eyeR");
+const eyeL_gl_c = $("eyeL-gl"), eyeR_gl_c = $("eyeR-gl");
+
+function _makeGL(canvas) {
+  const gl = canvas.getContext("webgl", { premultipliedAlpha: false });
+  if (!gl) return null;
+  const vs = `attribute vec2 p; varying vec2 uv;
+              void main(){ uv=vec2((p.x+1.0)*0.5,(1.0-p.y)*0.5);
+                           gl_Position=vec4(p,0.0,1.0); }`;
+  const fs = `precision mediump float; varying vec2 uv;
+              uniform sampler2D tex; uniform float K1; uniform float CA;
+              vec4 sample(vec2 c){
+                float r2 = dot(c, c);
+                vec2 d  = c * (1.0 + K1 * r2);
+                if (CA < 0.001) {
+                  vec2 s = d + 0.5;
+                  if (s.x<0.0 || s.x>1.0 || s.y<0.0 || s.y>1.0)
+                    return vec4(0.0,0.0,0.0,1.0);
+                  return texture2D(tex, s);
+                }
+                vec2 dR = c * (1.0 + K1 * r2 * (1.0 + CA));
+                vec2 dG = d;
+                vec2 dB = c * (1.0 + K1 * r2 * (1.0 - CA));
+                float r = texture2D(tex, dR + 0.5).r;
+                float g = texture2D(tex, dG + 0.5).g;
+                float b = texture2D(tex, dB + 0.5).b;
+                return vec4(r, g, b, 1.0);
+              }
+              void main(){
+                vec2 c = uv - 0.5;
+                gl_FragColor = sample(c);
+              }`;
+  function compile(type, src){
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+      throw new Error(gl.getShaderInfoLog(sh));
+    return sh;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER,
+                new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]),
+                gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "p");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  return {
+    gl, prog, tex,
+    uK1: gl.getUniformLocation(prog, "K1"),
+    uCA: gl.getUniformLocation(prog, "CA"),
+  };
+}
+const glL = _makeGL(eyeL_gl_c);
+const glR = _makeGL(eyeR_gl_c);
+let _warpRAF = null;
+function _renderWarp() {
+  const K1 = parseInt($("vr-warp").value, 10) / 100.0;    // 0..0.80
+  const CA = parseInt($("vr-chroma").value, 10) / 1000.0; // 0..0.030
+  const src = eyeL_img.complete && eyeL_img.naturalWidth ? eyeL_img : null;
+  if (src && glL && glR) {
+    for (const g of [glL, glR]) {
+      g.gl.bindTexture(g.gl.TEXTURE_2D, g.tex);
+      try {
+        g.gl.texImage2D(g.gl.TEXTURE_2D, 0, g.gl.RGB,
+                        g.gl.RGB, g.gl.UNSIGNED_BYTE, src);
+      } catch(e) { /* CORS / not-loaded — skip this frame */ }
+      g.gl.viewport(0, 0, g.gl.canvas.width, g.gl.canvas.height);
+      g.gl.uniform1f(g.uK1, K1);
+      g.gl.uniform1f(g.uCA, CA);
+      g.gl.drawArrays(g.gl.TRIANGLES, 0, 6);
+    }
+  }
+  _warpRAF = requestAnimationFrame(_renderWarp);
+}
+function _updateWarpMode() {
+  const K1raw = parseInt($("vr-warp").value, 10);
+  const wantWarp = K1raw > 0 && stageEl.classList.contains("vr");
+  const isWarp = stageEl.classList.contains("warp");
+  if (wantWarp && !isWarp) {
+    stageEl.classList.add("warp");
+    if (!_warpRAF) _renderWarp();
+  } else if (!wantWarp && isWarp) {
+    stageEl.classList.remove("warp");
+    if (_warpRAF) { cancelAnimationFrame(_warpRAF); _warpRAF = null; }
+  }
+}
+
+// ── VR live tuning: IPD gap + zoom ───────────────────────────────────────
+// Ghosting ("重影") from a Cardboard headset is almost always caused by
+// the two eye squares being at the wrong distance apart (mismatched IPD)
+// or the wrong magnification inside each eye.  These sliders tweak both
+// live so the operator can converge the double image into a sharp one
+// once seated in the headset.  Values persist across reloads.
+const stageEl = document.getElementById("stage");
+const gapIn   = $("vr-gap"),   gapLbl   = $("vr-gap-val");
+const scaleIn = $("vr-scale"), scaleLbl = $("vr-scale-val");
+const warpIn   = $("vr-warp"),   warpLbl   = $("vr-warp-val");
+const chromaIn = $("vr-chroma"), chromaLbl = $("vr-chroma-val");
+function _applyVR() {
+  const g = parseInt(gapIn.value, 10);
+  const s = parseInt(scaleIn.value, 10) / 100;
+  const w = parseInt(warpIn.value, 10);
+  const c = parseInt(chromaIn.value, 10);
+  stageEl.style.setProperty("--vr-gap",   g + "px");
+  stageEl.style.setProperty("--vr-scale", s.toFixed(2));
+  gapLbl.textContent    = g;
+  scaleLbl.textContent  = (s * 100).toFixed(0) + "%";
+  warpLbl.textContent   = w;
+  chromaLbl.textContent = c;
+  try {
+    localStorage.setItem("vrGap",    g);
+    localStorage.setItem("vrScale",  scaleIn.value);
+    localStorage.setItem("vrWarp",   w);
+    localStorage.setItem("vrChroma", c);
+  } catch(e){}
+  _updateWarpMode();
+}
+// restore last values on load
+try {
+  const g = localStorage.getItem("vrGap");
+  const s = localStorage.getItem("vrScale");
+  const w = localStorage.getItem("vrWarp");
+  const c = localStorage.getItem("vrChroma");
+  if (g) gapIn.value    = g;
+  if (s) scaleIn.value  = s;
+  if (w) warpIn.value   = w;
+  if (c) chromaIn.value = c;
+} catch(e){}
+gapIn.oninput    = _applyVR;
+scaleIn.oninput  = _applyVR;
+warpIn.oninput   = _applyVR;
+chromaIn.oninput = _applyVR;
+_applyVR();
+
+// ── Wizard state machine ──────────────────────────────────────────────────
+function startWizard() {
+  wizResult = {};
+  wiz = { idx: 0, phase: "prep", tLeft: 10.0, samples: [], spoken: false };
+  wizEl.classList.add("visible");
+  wizEl.classList.remove("rec");
+  // Speak the first-step instruction immediately so operator has full
+  // 10 seconds to place the phone before recording begins.
+  const first = WIZ_SEQ[0];
+  if (first && first.speak) speak(first.speak);
+  tickWizard();
+}
+
+let wizTimer = null;
+function tickWizard() {
+  if (!wiz) return;
+  const step = WIZ_SEQ[wiz.idx];
+  if (!step) { finishWizard(false); return; }
+  wizTitle.textContent = step.title;
+  wizMsg.textContent = wiz.phase === "prep"
+    ? step.msg
+    : `紀錄中: ${step.msg}`;
+  wizCount.textContent = wiz.tLeft.toFixed(1);
+  wizCount.classList.toggle("rec", wiz.phase === "record");
+  wizEl.classList.toggle("rec", wiz.phase === "record");
+
+  wiz.tLeft -= 0.1;
+  if (wiz.tLeft <= 0.05) {
+    if (wiz.phase === "prep" && step.record) {
+      wiz.phase = "record"; wiz.tLeft = 5.0; wiz.samples = [];
+      if (step.recSpeak) speak(step.recSpeak);
+    } else if (wiz.phase === "record") {
+      // finalise sample: median of yaw/pitch/roll
+      if (wiz.samples.length > 0) {
+        const s = wiz.samples;
+        const sorted = [ [], [], [] ];
+        for (const [y,p,r] of s) {
+          sorted[0].push(y); sorted[1].push(p); sorted[2].push(r);
+        }
+        for (const a of sorted) a.sort((x,y)=>x-y);
+        const med = sorted.map(a => a[Math.floor(a.length/2)]);
+        wizResult[step.key] = { y: med[0], p: med[1], r: med[2] };
+      }
+      wiz.idx += 1; wiz.phase = "prep"; wiz.tLeft = 5.0;
+      const nxt = WIZ_SEQ[wiz.idx];
+      if (nxt && nxt.speak) speak(nxt.speak);
+    } else {
+      // prep for a non-record entry (the initial start_wait)
+      wiz.idx += 1; wiz.phase = "prep"; wiz.tLeft = 5.0;
+      const nxt = WIZ_SEQ[wiz.idx];
+      if (nxt && nxt.speak) speak(nxt.speak);
+    }
+  }
+  wizTimer = setTimeout(tickWizard, 100);
+}
+
+function finishWizard(skipped) {
+  if (wizTimer) clearTimeout(wizTimer);
+  wizTimer = null;
+  wizEl.classList.remove("visible");
+  const done = wiz;
+  wiz = null;
+  if (skipped) { speak("已跳過校準"); return; }
+  if (!done) return;
+  speak("校準完成,頭部控制已啟動");
+  // Send result to agent (agent updates IMU_ZERO + NECK_MAPPING q_lo/q_hi)
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ cmd: "cal_result", data: wizResult }));
+  }
+  // Auto-activate head control after successful calibration
+  if (!imuActive && ws && ws.readyState === 1) {
+    imuActive = true;
+    ws.send(JSON.stringify({ cmd: "active", on: true }));
+    activeBtn.textContent = "頭部控制 ON";
+    activeBtn.className = "on";
+  }
+}
+
+document.getElementById("stage").addEventListener("click", () => {
+  if (wizEl.classList.contains("visible")) return;
+  overlay.classList.toggle("hidden");
+});
+
+setInterval(() => {
+  if (!started) return;
+  if (!ws || ws.readyState !== 1) {
+    if (!retryT) connect();
+  }
+}, 5000);
+</script>
+</body>
+</html>

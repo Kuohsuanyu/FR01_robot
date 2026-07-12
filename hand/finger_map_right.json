@@ -1,0 +1,50 @@
+{
+  "31": {
+    "model": 1029,
+    "family": "SCS009",
+    "min_tick": 515,
+    "max_tick": 780,
+    "swapped_in_gui": false,
+    "finger": "小拇指 變高是縮"
+  },
+  "32": {
+    "model": 1029,
+    "family": "SCS009",
+    "min_tick": 240,
+    "max_tick": 518,
+    "swapped_in_gui": false,
+    "finger": "無名指 變低是縮"
+  },
+  "33": {
+    "model": 1029,
+    "family": "SCS009",
+    "min_tick": 430,
+    "max_tick": 700,
+    "swapped_in_gui": false,
+    "finger": "中指 變高是縮"
+  },
+  "34": {
+    "model": 521,
+    "family": "STS3032",
+    "min_tick": 2650,
+    "max_tick": 3400,
+    "swapped_in_gui": false,
+    "finger": "食指 變低是縮"
+  },
+  "35": {
+    "model": 1029,
+    "family": "SCS009",
+    "min_tick": 500,
+    "max_tick": 750,
+    "swapped_in_gui": false,
+    "finger": "拇指轉動（固定在650就好）"
+  },
+  "36": {
+    "model": 521,
+    "family": "STS3032",
+    "min_tick": 2200,
+    "max_tick": 2660,
+    "swapped_in_gui": false,
+    "finger": "拇指開合 變低是縮"
+  }
+}

@@ -1,0 +1,2 @@
+aiohttp>=3.9
+# scservo_sdk is in ~/FTServo_Python (shared with head_rpi_agent)

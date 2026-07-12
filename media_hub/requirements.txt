@@ -1,0 +1,11 @@
+# FR01 Media Hub 相依
+# 安裝:  python3 -m pip install -r requirements.txt
+#
+# 註:樹莓派上 aiortc/av 若無 wheel 需先裝系統套件:
+#   sudo apt install -y libavdevice-dev libavfilter-dev libopus-dev libvpx-dev pkg-config
+aiohttp>=3.9
+aiohttp_cors>=0.7
+aiortc>=1.9
+av>=11,<13
+numpy>=1.23
+opencv-python>=4.8

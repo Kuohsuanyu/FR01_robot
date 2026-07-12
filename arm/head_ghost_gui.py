@@ -48,7 +48,7 @@ except ImportError:
 
 # ── paths ────────────────────────────────────────────────────────────────────
 HERE = os.path.dirname(os.path.abspath(__file__))
-MJCF_PATH = os.path.normpath(os.path.join(HERE, "..", "QBOT_MJCF", "qbot.xml"))
+MJCF_PATH = os.path.normpath(os.path.join(HERE, "..", "models", "QBOT_MJCF", "qbot.xml"))
 
 RENDER_W = 560
 RENDER_H = 620
@@ -109,12 +109,15 @@ HEAD_BODIES = ("ub_1_2", "ub_sts3215_original_v1_v1", "ub_link_4", "ub_link_8")
 # (+ pitch = head up, + yaw = left turn, + roll = head toward left shoulder).
 NECK = [
     # idx label    mjcf_joint        motor_id  dir  lo_deg  hi_deg
-    # ID 1 yaw: lower hard stop at tick 1800 = -22°, upper hard stop verified
-    #          at tick 2450 = +35° (machine hits side beyond this).
+    # Physical wiring (verified 2026-07-05):
+    #   sid 1 = yaw (turn head left/right)
+    #   sid 2 = pitch (nod head up/down)
+    #   sid 3 = roll  (tilt head to shoulder)
+    # sid 2/3 were previously swapped in this table — corrected here so
+    # slider labels match the actual joint that moves.
     (0, "Yaw",   "ub_neck_yaw",   1,   +1,  -22.0,  35.0),
-    # ID 3 pitch: dir flipped back to +1 (the -1 still showed reversed motion).
-    (1, "Pitch", "ub_neck_pitch", 3,   +1,  -13.0,  13.0),
-    (2, "Roll",  "ub_neck_roll",  2,   -1,  -22.0,  22.0),
+    (1, "Pitch", "ub_neck_pitch", 2,   -1,  -22.0,  22.0),
+    (2, "Roll",  "ub_neck_roll",  3,   +1,  -13.0,  13.0),
 ]
 
 # Drag sensitivity (deg per pixel)

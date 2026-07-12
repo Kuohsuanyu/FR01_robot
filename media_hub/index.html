@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FR01 Media Hub — WebRTC 測試</title>
+<style>
+  body{font-family:system-ui,"Noto Sans TC",sans-serif;background:#0e1620;color:#d0e0f0;margin:0;padding:16px}
+  h1{font-size:18px;margin:0 0 12px}
+  #wrap{max-width:900px;margin:0 auto}
+  video{width:100%;background:#000;border-radius:8px;display:block}
+  .row{display:flex;gap:10px;align-items:center;margin:10px 0;flex-wrap:wrap}
+  button{background:#1e4870;color:#fff;border:0;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  #stat{font-family:ui-monospace,monospace;font-size:12px;color:#6080a0;white-space:pre}
+  .tag{background:#172130;border-radius:5px;padding:2px 8px;font-family:ui-monospace,monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>FR01 Media Hub — WebRTC 串流測試</h1>
+  <div class="row">
+    <button id="start">▶ 開始串流 (WebRTC)</button>
+    <button id="stop" disabled>■ 停止</button>
+    <span class="tag" id="state">idle</span>
+    <span class="tag">延遲(latency)看畫面即時性</span>
+  </div>
+  <video id="vid" autoplay playsinline muted></video>
+  <div class="row"><span id="stat"></span></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let pc = null, statTimer = null;
+
+async function start(){
+  $('start').disabled = true; $('state').textContent = 'connecting…';
+  pc = new RTCPeerConnection();
+  pc.addTransceiver('video', {direction:'recvonly'});
+  pc.ontrack = e => { $('vid').srcObject = e.streams[0]; };
+  pc.onconnectionstatechange = () => { $('state').textContent = pc.connectionState; };
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  // 等 ICE 收斂
+  await new Promise(r => {
+    if (pc.iceGatheringState === 'complete') return r();
+    const chk = () => { if (pc.iceGatheringState === 'complete'){pc.removeEventListener('icegatheringstatechange',chk);r();} };
+    pc.addEventListener('icegatheringstatechange', chk);
+  });
+  const res = await fetch('/offer', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({sdp:pc.localDescription.sdp, type:pc.localDescription.type})
+  });
+  await pc.setRemoteDescription(await res.json());
+  $('stop').disabled = false;
+
+  statTimer = setInterval(async () => {
+    const s = await pc.getStats(); let line = '';
+    s.forEach(r => {
+      if (r.type === 'inbound-rtp' && r.kind === 'video'){
+        line = `frames=${r.framesDecoded}  fps=${r.framesPerSecond||'-'}  `
+             + `bytes=${(r.bytesReceived/1024|0)}KB  codec=${r.codecId||'-'}`;
+      }
+    });
+    $('stat').textContent = line;
+  }, 1000);
+}
+
+function stop(){
+  if (statTimer) clearInterval(statTimer);
+  if (pc){ pc.close(); pc = null; }
+  $('vid').srcObject = null;
+  $('start').disabled = false; $('stop').disabled = true;
+  $('state').textContent = 'idle'; $('stat').textContent = '';
+}
+
+$('start').onclick = start;
+$('stop').onclick = stop;
+</script>
+</body>
+</html>
