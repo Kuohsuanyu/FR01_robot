@@ -1,0 +1,7 @@
+# sim2sim / 驗證 相依(在這台電腦跑 MuJoCo 測試用)
+# 安裝:  python3 -m pip install -r leg/policies/requirements.txt
+mujoco>=3.1
+onnxruntime>=1.17
+onnx>=1.15
+numpy>=1.23
+mediapy>=1.2      # 只有 --video 輸出影片時需要

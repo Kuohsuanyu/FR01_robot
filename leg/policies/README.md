@@ -54,6 +54,29 @@ leg/policies/deploy_leg_policy.sh leg/policies/verified/walk_v42.kinfer
 ```
 或 leg RPi 端自己 `git pull` 後跑 deploy(兩種都行)。
 
+## sim2sim(在這台電腦用 MuJoCo 測走路)
+
+部署到實機前,先在 MuJoCo 跑一顆 policy 看走路狀況:
+
+```bash
+python3 -m pip install -r leg/policies/requirements.txt   # 首次
+# 互動 3D 視窗:
+python3 leg/policies/sim2sim.py leg/policies/verified/walk_v42.kinfer
+# 無視窗 + 量化評分(身高/傾斜/前進/是否跌倒):
+python3 leg/policies/sim2sim.py <policy.kinfer> --seconds 8 --headless
+# 輸出影片:
+python3 leg/policies/sim2sim.py <policy.kinfer> --video /tmp/walk.mp4
+```
+
+- 用本地全身模型 `models/QBOT_MJCF/qbot.xml`,**上半身固定成站姿**,只讓 policy 控制
+  10 個腿部關節(對應你「上半身尚未 sim2real」)。缺地板會自動補。
+- kinfer 觀測介面(自 onnx 讀出):`joint_angles[10] joint_angular_velocities[10]
+  projected_gravity[3] imu_acc[3] imu_gyro[3] time[1] carry`。
+
+> ⚠ **觀測慣例待用真實模型校準一次**:`time` 單位(秒/微秒)與 action 是絕對還是相對,
+> 依你的訓練管線而定。第一顆真正訓練好的模型進來時,用這幾個旗標對一次即可:
+> `--time-unit s|us`、`--action-offset none|nominal`、`--kp/--kd`,調到「站穩/前進 ✓」。
+
 ## 更新驗證基準
 換了機器人 DOF / 指令介面時,用新的已知可運行 policy 重產基準:
 ```bash
