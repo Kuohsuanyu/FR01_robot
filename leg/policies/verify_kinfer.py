@@ -71,12 +71,14 @@ def verify(path: str, ref_path: str) -> bool:
     else:
         ok(f"joint_names 一致({len(jn)} 顆)")
 
-    # 4) num_commands
+    # 4) num_commands（依 enforce_num_commands 決定擋或僅提示）
     nc = meta.get("num_commands")
-    if nc != ref["num_commands"]:
+    if nc == ref["num_commands"]:
+        ok(f"num_commands={nc}")
+    elif ref.get("enforce_num_commands", True):
         passed = fail(f"num_commands={nc},基準要 {ref['num_commands']}") and passed
     else:
-        ok(f"num_commands={nc}")
+        warn(f"num_commands={nc}(基準 {ref['num_commands']};僅提示,依指令介面而定)")
 
     # 5) 可選:onnx 載入
     try:
