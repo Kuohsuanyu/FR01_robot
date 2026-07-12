@@ -22,11 +22,27 @@ from tkinter import ttk
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 
-def _load_host(env_key: str, cache_name: str, default: str = "") -> str:
-    """Generic resolver: env override → cached IP → default."""
+import socket
+
+def _mdns_ok(name: str) -> bool:
+    """True if a .local name resolves (mDNS/avahi)."""
+    if not name:
+        return False
+    try:
+        socket.gethostbyname(name)
+        return True
+    except OSError:
+        return False
+
+def _load_host(env_key: str, cache_name: str, default: str = "",
+               mdns: str = "") -> str:
+    """解析順序:env 覆寫 → mDNS 名稱(主)→ 快取 IP → 預設。
+    名稱能解析就用名稱,IP 變動免管;解不到才退回快取,再靠『尋找 IP』掃描。"""
     env = os.environ.get(env_key, "").strip()
     if env:
         return env
+    if _mdns_ok(mdns):
+        return mdns
     cache = os.path.join(REPO, cache_name)
     if os.path.isfile(cache):
         try:
@@ -37,9 +53,9 @@ def _load_host(env_key: str, cache_name: str, default: str = "") -> str:
             pass
     return default
 
-RPI_HOST     = _load_host("QBOT_RPI_HOST",     ".rpi_host",     "192.168.0.123")
-RPI_LEG_HOST = _load_host("QBOT_RPI_LEG_HOST", ".rpi_host_leg", "")
-RPI_EXO_HOST = _load_host("QBOT_RPI_EXO_HOST", ".rpi_host_exo", "")
+RPI_HOST     = _load_host("QBOT_RPI_HOST",     ".rpi_host",     "fr01-head.local", "fr01-head.local")
+RPI_LEG_HOST = _load_host("QBOT_RPI_LEG_HOST", ".rpi_host_leg", "",                "fr01-leg.local")
+RPI_EXO_HOST = _load_host("QBOT_RPI_EXO_HOST", ".rpi_host_exo", "",                "fr01-exo.local")
 RPI_USER     = "robot"
 RPI_LEG_USER = "fr01"
 RPI_EXO_USER = "robot"        # default — override in .rpi_exo_user if different

@@ -36,10 +36,12 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# 穩定 mDNS 主機名(名稱優先;各 RPi 需設唯一 hostname + avahi)
+NAME=""
 case "$MODE" in
-    head)   MAC="$HEAD_MAC"; CACHE="$REPO/.rpi_host" ;;
-    leg)    MAC="$LEG_MAC";  CACHE="$REPO/.rpi_host_leg" ;;
-    exo)    MAC="$EXO_MAC";  CACHE="$REPO/.rpi_host_exo"
+    head)   MAC="$HEAD_MAC"; CACHE="$REPO/.rpi_host";     NAME="fr01-head.local" ;;
+    leg)    MAC="$LEG_MAC";  CACHE="$REPO/.rpi_host_leg"; NAME="fr01-leg.local" ;;
+    exo)    MAC="$EXO_MAC";  CACHE="$REPO/.rpi_host_exo";  NAME="fr01-exo.local"
             if [ -z "$MAC" ]; then
                 c_r() { printf '\033[31m%s\033[0m\n' "$*"; }
                 c_r "[find_rpi:exo] no EXO_MAC set." >&2
@@ -56,6 +58,13 @@ c_r() { printf '\033[31m%s\033[0m\n' "$*"; }
 c_c() { printf '\033[36m%s\033[0m\n' "$*"; }
 
 try_ping() { ping -c1 -W2 "$1" >/dev/null 2>&1; }
+
+# --- Phase 0: mDNS 名稱優先(IP 變動免管)--------------------------------
+# 名稱解析得到且連得上就直接用名稱,並把名稱寫進快取(下次 lib.sh 也用名稱)。
+if [ -n "$NAME" ] && getent hosts "$NAME" >/dev/null 2>&1 && try_ping "$NAME"; then
+    c_g "[find_rpi:$MODE] mDNS $NAME 可用(免掃描)" >&2
+    echo "$NAME" > "$CACHE"; echo "$NAME"; exit 0
+fi
 
 # --- Phase 1: cached IP ping check ---------------------------------------
 if [ -f "$CACHE" ]; then

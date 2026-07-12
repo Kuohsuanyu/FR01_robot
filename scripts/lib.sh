@@ -8,32 +8,26 @@ REPO="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." && pwd )"
 RPI_USER="robot"          # head/arm/hand RPi login
 RPI_LEG_USER="fr01"       # legs / kbot RPi login
 
-# Head RPi IP resolution: env → cache → hard fallback
-if [ -n "${QBOT_RPI_HOST:-}" ]; then
-    RPI_HOST="$QBOT_RPI_HOST"
-elif [ -f "$REPO/.rpi_host" ]; then
-    RPI_HOST="$(cat "$REPO/.rpi_host")"
-else
-    RPI_HOST="192.168.0.123"
-fi
+# 穩定 mDNS 主機名(IP 怎麼變都用這個連;各 RPi 需設好唯一 hostname + avahi)
+RPI_HEAD_NAME="fr01-head.local"
+RPI_LEG_NAME="fr01-leg.local"
+RPI_EXO_NAME="fr01-exo.local"
 
-# Leg RPi IP resolution: env → cache → blank
-if [ -n "${QBOT_RPI_LEG_HOST:-}" ]; then
-    RPI_LEG_HOST="$QBOT_RPI_LEG_HOST"
-elif [ -f "$REPO/.rpi_host_leg" ]; then
-    RPI_LEG_HOST="$(cat "$REPO/.rpi_host_leg")"
-else
-    RPI_LEG_HOST=""
-fi
+# 解析順序:env 覆寫 → mDNS 名稱(主)→ 最後已知快取 IP → hard 預設。
+# 名稱能解析就用名稱(IP 變動免管);解不到才退回快取,再不行才靠 find_rpi.sh 掃描。
+_resolve_host() {   # $1=mdns_name  $2=cache_file  $3=hard_default
+    local name="$1" cache="$2" def="$3"
+    if getent hosts "$name" >/dev/null 2>&1; then echo "$name"; return; fi
+    if [ -f "$cache" ]; then
+        local c; c="$(cat "$cache" 2>/dev/null)"
+        [ -n "$c" ] && { echo "$c"; return; }
+    fi
+    echo "$def"
+}
 
-# Exo RPi IP resolution: env → cache → blank
-if [ -n "${QBOT_RPI_EXO_HOST:-}" ]; then
-    RPI_EXO_HOST="$QBOT_RPI_EXO_HOST"
-elif [ -f "$REPO/.rpi_host_exo" ]; then
-    RPI_EXO_HOST="$(cat "$REPO/.rpi_host_exo")"
-else
-    RPI_EXO_HOST=""
-fi
+RPI_HOST="${QBOT_RPI_HOST:-$(_resolve_host "$RPI_HEAD_NAME" "$REPO/.rpi_host"     "$RPI_HEAD_NAME")}"
+RPI_LEG_HOST="${QBOT_RPI_LEG_HOST:-$(_resolve_host "$RPI_LEG_NAME" "$REPO/.rpi_host_leg" "")}"
+RPI_EXO_HOST="${QBOT_RPI_EXO_HOST:-$(_resolve_host "$RPI_EXO_NAME" "$REPO/.rpi_host_exo" "")}"
 RPI_KEY="$HOME/.ssh/qbot_rpi"
 RPI_SSH_OPTS="-i $RPI_KEY -o StrictHostKeyChecking=no -o ConnectTimeout=5"
 
