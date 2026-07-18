@@ -36,7 +36,28 @@ MJCF_PATH = os.path.join(REPO, "models", "QBOT_MJCF", "qbot.xml")
 
 # Reuse RemoteBus + ARMS + MJ_SIGN from qbot_ik_gui
 sys.path.insert(0, os.path.join(REPO, "arm"))
-from qbot_ik_gui import RemoteBus, ARMS  # noqa: E402
+from qbot_ik_gui import RemoteBus, ARMS, MJ_SIGN  # noqa: E402
+
+# jname → (arm, index, lo, hi, sign):讓 exo_gui 的 ghost 顯示完全比照 arm IK
+# (同樣 clip 到 MJCF lo/hi + 乘 MJ_SIGN 方向翻轉)。非手臂關節不在表內、原樣通過。
+JNAME_META: dict[str, tuple] = {}
+for _a in ("L", "R"):
+    for _i, (_sid, _lbl, _gear, _lo, _hi, _jn) in enumerate(ARMS[_a]["joints"]):
+        if _jn is not None:
+            JNAME_META[_jn] = (_a, _i, _lo, _hi, MJ_SIGN[_a][_i])
+
+
+def _display_qmap(q_map: dict) -> dict:
+    """套用和 qbot_ik_gui 顯示 ghost 相同的 clip + MJ_SIGN,讓兩邊畫面一致。"""
+    out = {}
+    for name, val in q_map.items():
+        meta = JNAME_META.get(name)
+        if meta is None:
+            out[name] = val
+        else:
+            _a, _i, lo, hi, sign = meta
+            out[name] = max(lo, min(hi, float(val))) * sign
+    return out
 
 CAL_PATH = os.path.join(REPO, "arm", "qbot_arm_calibration.json")
 
@@ -71,13 +92,9 @@ class GhostWorld:
     when converging blue→orange."""
     def __init__(self, path: str, colour):
         self.model = mujoco.MjModel.from_xml_path(path)
-        # Offscreen buffer sized to the largest pane we might ever render
-        # (fullscreen on a 4K display).  The live renderer is (re)created at
-        # the pane's actual pixel size via set_size(), never exceeding this.
-        self.model.vis.global_.offwidth = MAX_PANE_W
-        self.model.vis.global_.offheight = MAX_PANE_H
+        self.model.vis.global_.offwidth = PANE_W
+        self.model.vis.global_.offheight = PANE_H
         self.data = mujoco.MjData(self.model)
-        self.width, self.height = PANE_W, PANE_H
         self.renderer = mujoco.Renderer(self.model, height=PANE_H, width=PANE_W)
         self.cam = mujoco.MjvCamera()
         self.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
@@ -117,12 +134,9 @@ class GhostWorld:
         mujoco.mj_forward(self.model, self.data)
         return {}
 
-    def set_size(self, w: int, h: int):
-        """Resize the live renderer to (w, h) pixels.  No-op if unchanged.
-        Clamped to [160, MAX_PANE_*] so a stray 0/1-px Configure event or an
-        oversized window can't crash the offscreen buffer."""
-        w = max(160, min(int(w), MAX_PANE_W))
-        h = max(160, min(int(h), MAX_PANE_H))
+    def _unused_set_size(self, w: int, h: int):
+        w = max(160, min(int(w), PANE_W))
+        h = max(160, min(int(h), PANE_H))
         if w == self.width and h == self.height:
             return
         try:
@@ -276,7 +290,9 @@ class RobotConn:
                     if pos is None: continue
                     q = self._tick_to_q(arm, ji, int(pos))
                     if q is not None:
-                        self.q[jname] = float(q)
+                        # 套 MJ_SIGN 讓 robot ghost 顯示比照 arm IK(顯示慣例)。
+                        # exo_conn.q 不套(它本來就對),兩邊才一致。
+                        self.q[jname] = float(q) * MJ_SIGN[arm][ji]
             self.frames += 1
             time.sleep(1.0 / POLL_HZ_STATUS)
 
@@ -307,24 +323,8 @@ class ExoApp:
         win_h = PANE_H + 320
         self.root.geometry(f"{win_w}x{win_h}")
         self._build_ui()
-        # Start maximized so the ghosts fill the screen; F11 toggles true
-        # borderless fullscreen, Esc leaves it.
-        self._fullscreen = False
-        self.root.bind("<F11>", self._toggle_fullscreen)
-        self.root.bind("<Escape>", lambda e: self._set_fullscreen(False))
-        try:
-            self.root.attributes("-zoomed", True)   # X11 maximize
-        except tk.TclError:
-            self.root.after(80, lambda: self.root.state("zoomed"))
         self.root.after(50, self._render_tick)
         self.root.after(50, self._ghost_tick)
-
-    def _set_fullscreen(self, on: bool):
-        self._fullscreen = on
-        self.root.attributes("-fullscreen", on)
-
-    def _toggle_fullscreen(self, _evt=None):
-        self._set_fullscreen(not self._fullscreen)
 
     # ── build UI ────────────────────────────────────────────────────────
     def _build_ui(self):
@@ -348,15 +348,13 @@ class ExoApp:
             self.robot_btn = self._build_pane(
                 body, "機器人 (Robot)", "#5aa2f0",
                 self._robot_host_default, self._toggle_robot_conn)
-        self.robot_pane.pack(side="left", padx=(0, GAP_PX // 2),
-                             fill="both", expand=True)
+        self.robot_pane.pack(side="left", padx=(0, GAP_PX // 2), fill="y")
 
         self.exo_pane, self.exo_ip_var, self.exo_status_var, \
             self.exo_btn = self._build_pane(
                 body, "外骨骼 (Exo)", "#f0a05a",
                 self._exo_host_default, self._toggle_exo_conn)
-        self.exo_pane.pack(side="left", padx=(GAP_PX // 2, 0),
-                           fill="both", expand=True)
+        self.exo_pane.pack(side="left", padx=(GAP_PX // 2, 0), fill="y")
 
         # Bottom control bar
         ctrl = tk.LabelFrame(self.root, text=" 控制 ",
@@ -423,11 +421,10 @@ class ExoApp:
                  font=("DejaVu Sans Mono", 9), anchor="w"
                  ).pack(fill="x", padx=8, pady=(2, 4))
         # Canvas + optional trigger indicators (exo pane only) side by side
-        cav_row = tk.Frame(pane, bg=C["panel"])
-        cav_row.pack(padx=6, pady=6, fill="both", expand=True)
+        cav_row = tk.Frame(pane, bg=C["panel"]); cav_row.pack(padx=6, pady=6)
         canvas = tk.Canvas(cav_row, width=PANE_W, height=PANE_H,
                            bg="#000", highlightthickness=0)
-        canvas.pack(side="left", fill="both", expand=True)
+        canvas.pack(side="left")
         # Save canvas ref via attribute name convention
         if title.startswith("機器人"):
             self.robot_canvas = canvas
@@ -618,6 +615,8 @@ class ExoApp:
             q_mjcf = float(self.robot_world.data.qpos[adr])
             ji = next(i for i, j in enumerate(ARMS[arm]["joints"])
                       if j[5] == jname)
+            # ghost qpos 現在含 MJ_SIGN(顯示用),換 tick 前先還原成原始 q
+            q_mjcf *= MJ_SIGN[arm][ji]
             p = self.robot_conn.cal[arm][ji]
             q_min = min(p["q_lo"], p["q_hi"])
             q_max = max(p["q_lo"], p["q_hi"])
@@ -635,6 +634,8 @@ class ExoApp:
     def _ghost_tick(self):
         clipped_exo: dict[str, str] = {}
         clipped_robot: dict[str, str] = {}
+        # robot_conn.q 已在 RobotConn 套過 MJ_SIGN、exo_conn.q 本就是顯示慣例,
+        # 兩邊都直接寫入即一致。
         # Update exo ghost from its own conn
         if self.exo_conn.q:
             clipped_exo = self.exo_world.write_q(self.exo_conn.q)
@@ -721,15 +722,6 @@ class ExoApp:
         self.root.after(50, self._ghost_tick)
 
     def _render_tick(self):
-        # Match each renderer to its canvas's live pixel size so the ghost
-        # scales to fill the pane (incl. fullscreen), not a fixed 440x500.
-        try:
-            self.robot_world.set_size(self.robot_canvas.winfo_width(),
-                                      self.robot_canvas.winfo_height())
-            self.exo_world.set_size(self.exo_canvas.winfo_width(),
-                                    self.exo_canvas.winfo_height())
-        except Exception as e:
-            print(f"[resize] {e}", flush=True)
         try:
             img = self.robot_world.render()
             self._robot_tk = ImageTk.PhotoImage(img)
