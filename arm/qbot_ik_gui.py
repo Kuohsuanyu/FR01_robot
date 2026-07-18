@@ -1130,6 +1130,16 @@ class App:
                  font=("DejaVu Sans Mono", 9)
                  ).pack(side="left", padx=6)
 
+        # 設新零位(每關節):當下馬達 tick → 中位 q=0,±2048 tick ↔ ±180°。
+        # 單圈零位偏差(如肩旋轉 10/20)時,轉到正確中位按對應 J 鍵即對稱。
+        cb3 = tk.Frame(cal, bg=C["panel"]); cb3.pack(fill="x", padx=4, pady=(0, 6))
+        tk.Label(cb3, text="設新零位(當前tick→中位):", bg=C["panel"], fg=C["text"],
+                 font=("DejaVu Sans Mono", 9, "bold")).pack(side="left")
+        for j in range(5):
+            tk.Button(cb3, text=f"J{j}", bg="#2e7d32", fg="white", width=4,
+                      command=lambda i=j: self._set_center_zero(i)
+                      ).pack(side="left", padx=1)
+
         # actions
         ab = tk.Frame(p, bg=C["panel"]); ab.pack(fill="x", padx=6, pady=4)
         tk.Button(ab, text="HOME (q=0)", bg=C["btn"], fg="white",
@@ -1592,6 +1602,25 @@ class App:
         self.zero_offset[self.active][:] = 0.0
         self._refresh_slider_meta()
         self.status_var.set(f"{self.active} 零位已清除")
+
+    def _set_center_zero(self, i):
+        """把當下馬達 tick 設為此關節中位 q=0,上下各 ±2048 tick(半圈)對應 ±180°。
+        只改校正換算、不送任何馬達指令。用於單圈零位偏差(如肩旋轉 10/20):
+        轉到正確中位按一下,上下幅度就對稱、和鬼影/拉條一致。"""
+        sid = ARMS[self.active]["joints"][i][0]
+        if not self.bus.is_open():
+            self.status_var.set("尚未連線 — 無法讀 tick"); return
+        pos = self.bus.read_pos(sid)
+        if pos is None:
+            self.status_var.set(f"J{i} 馬達無回應"); return
+        p = self.cal_points[self.active][i]
+        p["tick_lo"] = float(pos) - 2048.0; p["q_lo"] = -math.pi
+        p["tick_hi"] = float(pos) + 2048.0; p["q_hi"] = +math.pi
+        self.zero_offset[self.active][i] = 0.0
+        self._refresh_cal_ui()
+        self._refresh_slider_meta()
+        self.status_var.set(
+            f"J{i} ID{sid} 新零位 ← tick={int(pos)}  (±2048↔±180°)")
 
     def _toggle_motor_live(self, i: int, btn):
         self.motor_live[self.active][i] = not self.motor_live[self.active][i]
