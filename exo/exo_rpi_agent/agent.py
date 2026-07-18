@@ -130,6 +130,7 @@ async def _status(req):
         "motor_error": bus.error,
         "channels": [ch["joint"] for ch in config.CHANNELS],
         "q": dict(bus.q),
+        "ticks": {c["joint"]: bus._ticks.get(c["sid"]) for c in config.CHANNELS},
     })
 
 

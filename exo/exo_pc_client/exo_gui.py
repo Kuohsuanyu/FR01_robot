@@ -390,6 +390,23 @@ class ExoApp:
                   command=self._e_stop
                   ).pack(side="right", padx=3)
 
+        # 速度 / 加速度 拉桿(即時調整馬達寫入速度與加速度)
+        srow = tk.Frame(ctrl, bg=C["panel"]); srow.pack(fill="x", padx=6, pady=(0, 6))
+        self.speed_var = tk.IntVar(value=1000)
+        self.acc_var = tk.IntVar(value=50)
+        tk.Label(srow, text="速度", bg=C["panel"], fg=C["text"],
+                 font=("DejaVu Sans Mono", 10)).pack(side="left")
+        tk.Scale(srow, from_=50, to=4000, orient="horizontal", length=220,
+                 variable=self.speed_var, bg=C["panel"], fg=C["text"],
+                 troughcolor=C["card"], highlightthickness=0,
+                 font=("DejaVu Sans Mono", 8)).pack(side="left", padx=(4, 16))
+        tk.Label(srow, text="加速度", bg=C["panel"], fg=C["text"],
+                 font=("DejaVu Sans Mono", 10)).pack(side="left")
+        tk.Scale(srow, from_=1, to=254, orient="horizontal", length=200,
+                 variable=self.acc_var, bg=C["panel"], fg=C["text"],
+                 troughcolor=C["card"], highlightthickness=0,
+                 font=("DejaVu Sans Mono", 8)).pack(side="left", padx=4)
+
         self.info = tk.StringVar(value="ready.")
         tk.Label(self.root, textvariable=self.info,
                  bg=C["bg"], fg=C["dim"], anchor="w", justify="left",
@@ -551,7 +568,8 @@ class ExoApp:
         cmds = self._robot_q_to_tick_cmds()
         if cmds and hasattr(self.robot_conn.bus, "write_pos"):
             for sid, tick in cmds:
-                self.robot_conn.bus.write_pos(int(sid), int(tick), 800, 30)
+                self.robot_conn.bus.write_pos(int(sid), int(tick),
+                                              self.speed_var.get(), self.acc_var.get())
             self.info.set(f"已送 {len(cmds)} 顆 tick 一次(snapshot)")
         else:
             self.info.set("沒有 arm cal 或 bus 沒 write_pos")
@@ -667,7 +685,8 @@ class ExoApp:
                 cmds = self._robot_q_to_tick_cmds()
                 if cmds and hasattr(self.robot_conn.bus, "write_pos"):
                     for sid, tick in cmds:
-                        self.robot_conn.bus.write_pos(sid, tick, 1000, 50)
+                        self.robot_conn.bus.write_pos(
+                            sid, tick, self.speed_var.get(), self.acc_var.get())
 
         # Status lines — include a compact `!clip` warning if either side
         # was over its MJCF limit, so the operator sees which joint is
