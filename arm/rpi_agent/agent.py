@@ -245,6 +245,24 @@ class MotorHub:
             elif c.op == "tele_hz":
                 (hz,) = c.args
                 self.tele_hz = max(1, min(200, int(hz)))
+            elif c.op == "set_mode":
+                # mode 3 = 多圈/無限位置;0 = 單圈位置。寫 EPROM(持久)。
+                sid, mode = c.args
+                if int(mode) == 3:
+                    self.sts.SetMultiTurnMode(int(sid))
+                else:
+                    self.sts.SetPositionMode(int(sid))
+                if c.reply_q: c.reply_q.put({"ok": True, "sid": int(sid),
+                                             "mode": int(mode)})
+            elif c.op == "set_limit":
+                # 設 EPROM 角度限位(tick)。min/max 任一為 None 則不改該端。
+                sid, mn, mx = c.args
+                self.sts.unLockEprom(int(sid))
+                if mn is not None: self.sts.SetMinAngleLimit(int(sid), int(mn))
+                if mx is not None: self.sts.SetMaxAngleLimit(int(sid), int(mx))
+                self.sts.LockEprom(int(sid))
+                if c.reply_q: c.reply_q.put({"ok": True, "sid": int(sid),
+                                             "min": mn, "max": mx})
         except Exception as e:
             if c.reply_q: c.reply_q.put({"ok": False, "error": str(e)})
             print(f"[motor] {c.op} err: {e}", flush=True)
@@ -412,6 +430,19 @@ a{color:#7cf}</style>
                 await ws.send_str(json.dumps({"t": "reply", "req_id": req, **r}))
             elif op == "tele_hz":
                 self.motor.enqueue("tele_hz", (int(d.get("hz", TELE_HZ_DEFAULT)),))
+            elif op == "set_mode":
+                req = d.get("req_id")
+                rq = self.motor.enqueue("set_mode", (d["sid"], d["mode"]),
+                                        want_reply=True)
+                r = await loop.run_in_executor(None, lambda: rq.get(timeout=3.0))
+                await ws.send_str(json.dumps({"t": "reply", "req_id": req, **r}))
+            elif op == "set_limit":
+                req = d.get("req_id")
+                rq = self.motor.enqueue("set_limit",
+                                        (d["sid"], d.get("min"), d.get("max")),
+                                        want_reply=True)
+                r = await loop.run_in_executor(None, lambda: rq.get(timeout=3.0))
+                await ws.send_str(json.dumps({"t": "reply", "req_id": req, **r}))
         except queue.Empty:
             await ws.send_str(json.dumps({"t": "reply", "ok": False,
                                           "req_id": d.get("req_id"),
