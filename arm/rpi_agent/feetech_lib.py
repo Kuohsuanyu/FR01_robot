@@ -245,6 +245,11 @@ class SMS_STS:
         """1 = enable torque, 0 = disable (limp)."""
         self._write_byte(sid, SMS_STS_TORQUE_ENABLE, enable)
 
+    def CalibrationMiddle(self, sid: int):
+        """中位校正:寫 torque 暫存器(40)=128,把馬達當下實體位置設為 2048
+        中心(寫入 EPROM offset,持久)。單圈零位偏差時用來歸中。"""
+        self._write_byte(sid, SMS_STS_TORQUE_ENABLE, 128)
+
     # ── Wheel (speed) mode ────────────────────────────────────────────────────
 
     def WheelMode(self, sid: int):

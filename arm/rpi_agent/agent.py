@@ -263,6 +263,11 @@ class MotorHub:
                 self.sts.LockEprom(int(sid))
                 if c.reply_q: c.reply_q.put({"ok": True, "sid": int(sid),
                                              "min": mn, "max": mx})
+            elif c.op == "set_center":
+                # 中位校正:當下實體位置 → 2048(寫 40=128,EPROM 持久)
+                (sid,) = c.args
+                self.sts.CalibrationMiddle(int(sid))
+                if c.reply_q: c.reply_q.put({"ok": True, "sid": int(sid)})
         except Exception as e:
             if c.reply_q: c.reply_q.put({"ok": False, "error": str(e)})
             print(f"[motor] {c.op} err: {e}", flush=True)
@@ -441,6 +446,11 @@ a{color:#7cf}</style>
                 rq = self.motor.enqueue("set_limit",
                                         (d["sid"], d.get("min"), d.get("max")),
                                         want_reply=True)
+                r = await loop.run_in_executor(None, lambda: rq.get(timeout=3.0))
+                await ws.send_str(json.dumps({"t": "reply", "req_id": req, **r}))
+            elif op == "set_center":
+                req = d.get("req_id")
+                rq = self.motor.enqueue("set_center", (d["sid"],), want_reply=True)
                 r = await loop.run_in_executor(None, lambda: rq.get(timeout=3.0))
                 await ws.send_str(json.dumps({"t": "reply", "req_id": req, **r}))
         except queue.Empty:

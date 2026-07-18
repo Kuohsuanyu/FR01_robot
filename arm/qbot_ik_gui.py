@@ -366,6 +366,13 @@ class Bus:
             r, _ = self._pk.write1ByteTxRx(sid, ADDR_TORQUE_ENABLE, 1 if on else 0)
             return r == COMM_SUCCESS
 
+    def set_center(self, sid):
+        """中位校正:寫 torque 暫存器(40)=128,把當下實體位置設為 2048。"""
+        with self._lock:
+            if not self._pk: return False
+            r, _ = self._pk.write1ByteTxRx(sid, ADDR_TORQUE_ENABLE, 128)
+            return r == COMM_SUCCESS
+
     def read_quick(self, sid):
         with self._lock:
             if not self._pk: return None
@@ -451,6 +458,12 @@ class RemoteBus:
     def torque(self, sid, on):
         if not self.connected: return False
         self._out.put({"op": "torque", "sid": int(sid), "on": bool(on)})
+        return True
+
+    def set_center(self, sid):
+        """中位校正:請 agent 對該馬達寫 40=128,當下位置設為 2048。"""
+        if not self.connected: return False
+        self._out.put({"op": "set_center", "sid": int(sid)})
         return True
 
     def read_pos(self, sid):
@@ -1604,23 +1617,23 @@ class App:
         self.status_var.set(f"{self.active} 零位已清除")
 
     def _set_center_zero(self, i):
-        """把當下馬達 tick 設為此關節中位 q=0,上下各 ±2048 tick(半圈)對應 ±180°。
-        只改校正換算、不送任何馬達指令。用於單圈零位偏差(如肩旋轉 10/20):
-        轉到正確中位按一下,上下幅度就對稱、和鬼影/拉條一致。"""
+        """中位校正:硬體把該關節馬達當下實體位置設為 2048(寫 40=128),並讓軟體
+        cal 對到『當下鬼影姿勢 q ↔ tick 2048』,用預設斜率。不動 slider_range /
+        zero_offset —— 鬼影活動範圍維持不變。
+        用法:把鬼影擺到正確中位姿勢(如抬伸 45°)、實體手臂也擺到該姿勢,按此鍵。"""
         sid = ARMS[self.active]["joints"][i][0]
         if not self.bus.is_open():
-            self.status_var.set("尚未連線 — 無法讀 tick"); return
-        pos = self.bus.read_pos(sid)
-        if pos is None:
-            self.status_var.set(f"J{i} 馬達無回應"); return
+            self.status_var.set("尚未連線 — 無法校正"); return
+        # 1) 硬體中位校正:當下實體位置 → 2048
+        self.bus.set_center(sid)
+        # 2) 軟體 cal:q=當下鬼影姿勢 ↔ tick 2048(±π ↔ tick 0/4096,預設斜率)
+        ghost_q = float(self.q[i])
         p = self.cal_points[self.active][i]
-        p["tick_lo"] = float(pos) - 2048.0; p["q_lo"] = -math.pi
-        p["tick_hi"] = float(pos) + 2048.0; p["q_hi"] = +math.pi
-        self.zero_offset[self.active][i] = 0.0
+        p["tick_lo"] = 0.0;    p["q_lo"] = ghost_q - math.pi
+        p["tick_hi"] = 4096.0; p["q_hi"] = ghost_q + math.pi
         self._refresh_cal_ui()
-        self._refresh_slider_meta()
         self.status_var.set(
-            f"J{i} ID{sid} 新零位 ← tick={int(pos)}  (±2048↔±180°)")
+            f"J{i} ID{sid} 中位校正:實體→2048, q={math.degrees(ghost_q):+.0f}°↔中心")
 
     def _toggle_motor_live(self, i: int, btn):
         self.motor_live[self.active][i] = not self.motor_live[self.active][i]
