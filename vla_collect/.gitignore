@@ -1,0 +1,3 @@
+# 採集的 episode 資料(影像大,不進 git;自行備份)
+data/
+__pycache__/
